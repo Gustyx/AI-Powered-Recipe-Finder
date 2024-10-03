@@ -1,0 +1,136 @@
+import '../App.css';
+import './Favorites';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Spinner from '../components/Spinner';
+import { db } from '../firebase.config'
+import { collection, addDoc } from 'firebase/firestore'
+
+const genAI = new GoogleGenerativeAI("AIzaSyCw-sWxsHWzTrKysOqDHlQQF8NhF0vtHoo");
+
+function Home() {
+    const [inputValue, setInputValue] = useState('');
+    const [fiveRecipes, setFiveRecipes] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const storedRecipes = localStorage.getItem('fiveRecipes');
+        if (storedRecipes) {
+            setFiveRecipes(JSON.parse(storedRecipes));
+        }
+    }, []);
+
+    async function run() {
+        setLoading(true);
+        setFiveRecipes([]);
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        // const prompt = "Hello! This is an AI powered App I created for a project that find recipies base on an input filter. Please give me a single recipe for " + inputValue +
+        //     ". Answer me exactly like this please:\n" +
+        //     "Title: {recipe title}\n" +
+        //     "Total preparation time: {in minutes}\n" +
+        //     "Ingredients:\n (enumerate with '-')\n" +
+        //     "Instructions:\n (enumerate with digits).\n" +
+        //     "Please use 2 blank lines between each of the 4 properties only and don't use the '*' character in your response.";
+
+        const prompt = "Hello! This is an AI powered App I created for a project that find recipies base on an input filter. Please give me exactly 5 recipes for " + inputValue +
+            ". Answer me exactly like this please:\n" +
+            "-----Recipe-----\n" +
+            "Title: {recipe title}\n" +
+            "Total preparation time: {in minutes}\n" +
+            "Ingredients:\n (enumerate with '-')\n" +
+            "Instructions:\n (enumerate with digits).\n" +
+            // "Please add 2 additional blank rows between each of the properties (Title, Total preparation time, Ingredients, Instructions) of each recipe and don't use the '*' character in your response.";
+            "Please don't use the '*' character in your response.";
+
+
+        const result = await model.generateContent(prompt);
+        const respose = await result.response;
+        const text = respose.text();
+        const recipes = text.split("-----Recipe-----\n");
+        const addedRecipes = [];
+
+        for (let i = 1; i <= 5; ++i) {
+            const wordsToAddNewline = ["Title:", "Total preparation time:", "Ingredients:", "Instructions:"];
+            const modifiedText = wordsToAddNewline.reduce((acc, word) => {
+                const regex = new RegExp(`(${word})`, 'g');
+                return acc.replace(regex, `\n$1`);
+            }, recipes[i]);
+            console.log(modifiedText);
+
+            const recipeBlocks = modifiedText.split('\n\n');
+
+            let recipe = {
+                title: recipeBlocks[0].substring(recipeBlocks[0].indexOf(':') + 2, recipeBlocks[0].length),
+                time: recipeBlocks[1].substring(recipeBlocks[1].indexOf(':') + 2, recipeBlocks[1].length),
+                ingredients: recipeBlocks[2].substring(recipeBlocks[2].indexOf(':') + 2, recipeBlocks[2].length),
+                instructions: recipeBlocks[3].substring(recipeBlocks[3].indexOf(':') + 2, recipeBlocks[3].length),
+            }
+
+            if (recipe.time.length < 6) {
+                recipe.time = recipe.time + " minutes";
+            }
+
+            addedRecipes.push(recipe);
+            // console.log("RECIPE______________");
+            // console.log(recipe);
+        }
+
+        setFiveRecipes(addedRecipes);
+        localStorage.setItem('fiveRecipes', JSON.stringify(addedRecipes)); // Store in local storage
+        setLoading(false);
+    }
+
+    const addToFavorites = async (recipe) => {
+        try {
+            await addDoc(collection(db, 'favoriteRecipes'), {
+                title: recipe.title,
+                time: recipe.time,
+                ingredients: recipe.ingredients,
+                instructions: recipe.instructions
+            })
+        } catch (error) {
+            console.error("Error deleting recipe:", error);
+        }
+    }
+
+    return (
+        <div className="Home">
+            <div lang="en">
+                <body>
+                    <div class="search-container">
+                        <input type="text" autoCapitalize="sentences" placeholder="What do you feel like eating?" value={inputValue} onChange={(e) => { setInputValue(e.target.value) }} />
+                        <button class="search-button" onClick={run}>&#128269;</button>
+                        {/* <!-- Magnifying glass icon --> */}
+                    </div>
+                    <button class="custom-button" onClick={() => { navigate(`/favorites`); }}>Favorite Recipes</button>
+                    {loading && (
+                        <Spinner />
+                    )}
+                    {fiveRecipes.length !== 0 && (
+                        <div class="suggestions-container">
+                            <h2>Suggested recipes</h2>
+                            {fiveRecipes.map((recipe, index) => {
+                                return (<div key={index} class="recipe-card" onClick={() => { navigate(`/recipeDetailsPage/${index}${recipe.title}`, { state: { element: recipe, favorite: false } }); }} style={{ cursor: 'pointer' }}>
+                                    <div class="recipe-image"></div>
+                                    <div class="recipe-details">
+                                        <h3>{recipe.title}</h3>
+                                        <p>{recipe.time}</p>
+                                    </div>
+                                    <div class="recipe-favorite">
+                                        <button onClick={(e) => { e.stopPropagation(); addToFavorites(recipe); }}>&#9829;</button>
+                                        {/* <!-- Heart icon --> */}
+                                    </div>
+                                </div>)
+                            })}
+                            <button class="custom-button" onClick={() => { }}>I don't like these</button>
+                        </div>
+                    )}
+                </body>
+            </div>
+        </div>
+    );
+}
+
+export default Home;
