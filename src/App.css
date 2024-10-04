@@ -38,6 +38,7 @@
 }
 
 /*  */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 
 * {
   margin: 0;
@@ -46,7 +47,7 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: Outfit, sans-serif;
   background-color: #f9f9f9;
   padding: 20px;
 }
@@ -104,6 +105,12 @@ body {
   text-align: left;
 }
 
+.suggestions-container p {
+  font-size: 18px;
+  margin-top: 15px;
+  text-align: left;
+}
+
 .recipe-card {
   display: flex;
   text-align: left;
@@ -156,7 +163,7 @@ body {
 }
 
 .recipe-favorite button:hover {
-  color: #e74c3c;
+  color: #65558F;
 }
 
 .filled-recipe-favorite {
@@ -170,7 +177,7 @@ body {
   border: none;
   font-size: 36px;
   cursor: pointer;
-  color: #e74c3c;
+  color: #65558F;
 }
 
 .filled-recipe-favorite button:hover {
@@ -302,12 +309,11 @@ body {
 
 
 .custom-button {
-  background-color: #6C4B93;
+  background-color: #65558F;
   color: #fff;
-  padding: 10px 20px;
+  padding: 15px 20px;
   border: none;
   border-radius: 10px;
-  /* margin-top: 20px; */
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;

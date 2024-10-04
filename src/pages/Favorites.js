@@ -57,6 +57,7 @@ function Favorites() {
             await deleteDoc(recipeDocRef);
 
             setFavoriteRecipes((prevRecipes) => prevRecipes.filter(recipe => recipe.id !== recipeId));
+            setDisplayedRecipes((prevRecipes) => prevRecipes.filter(recipe => recipe.id !== recipeId));
 
             console.log(`Recipe with ID ${recipeId} has been deleted successfully.`);
         } catch (error) {
@@ -77,8 +78,8 @@ function Favorites() {
                 )}
                 {favoriteRecipes.length !== 0 && (
                     <div class="suggestions-container">
-                        <h2>Favorite recipes</h2>
-                        {displayedRecipes.map((recipe, index) => {
+                        <h2>Favorites</h2>
+                        {displayedRecipes.length !== 0 ? (displayedRecipes.map((recipe, index) => {
                             return (
                                 <div key={index} class="recipe-card" onClick={() => { navigate(`/recipeDetailsPage/${index}${recipe.title}`, { state: { element: recipe, favorite: true } }); }} style={{ cursor: 'pointer' }}>
                                     <img class="recipe-small-image" src={recipe.imageUrl} alt={recipe.title} />
@@ -91,7 +92,7 @@ function Favorites() {
                                     </div>
                                 </div>
                             )
-                        })}
+                        })) : <p>No recipes to display.</p>}
                     </div>
                 )}
             </div>

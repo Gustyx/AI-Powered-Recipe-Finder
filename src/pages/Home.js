@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Spinner from '../components/Spinner';
 import { db } from '../firebase.config'
-import { collection, addDoc } from 'firebase/firestore'
+import { collection, addDoc, doc, deleteDoc } from 'firebase/firestore'
 
 const genAI = new GoogleGenerativeAI("AIzaSyCw-sWxsHWzTrKysOqDHlQQF8NhF0vtHoo");
 const UNSPLASH_ACCESS_KEY = 'saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI';
@@ -20,6 +20,8 @@ function Home() {
     const [inputValue, setInputValue] = useState('');
     const [fiveRecipes, setFiveRecipes] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [favoriteButtons, setFavoriteButtons] = useState([null, null, null, null, null]);
+    const [hoveredButtons, setHoveredButtons] = useState([false, false, false, false, false]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -27,11 +29,17 @@ function Home() {
         if (storedRecipes) {
             setFiveRecipes(JSON.parse(storedRecipes));
         }
+        const storedFavoriteButtons = localStorage.getItem('favoriteButtons');
+        if (storedFavoriteButtons) {
+            setFavoriteButtons(JSON.parse(storedFavoriteButtons));
+        }
     }, []);
 
     const run = async (userInput) => {
         setLoading(true);
         setFiveRecipes([]);
+        setFavoriteButtons([null, null, null, null, null]);
+        localStorage.setItem('favoriteButtons', JSON.stringify([null, null, null, null, null]));
 
         const prompt = userInput === iDontLikeTheseButtonText ? iDontLikeTheseButtonText :
             "Hello! This is an AI powered App I created for a project that find recipies base on an input filter. Please give me exactly 5 recipes for " +
@@ -85,14 +93,59 @@ function Home() {
         setLoading(false);
     }
 
+    const handleFavoriteButton = async (recipe, index) => {
+        const newFavoriteButtons = [...favoriteButtons];
+        console.log(newFavoriteButtons[index])
+        if (newFavoriteButtons[index] === null) {
+            newFavoriteButtons[index] = await addToFavorites(recipe);
+        } else {
+            await removeFromFavorites(newFavoriteButtons[index]);
+            newFavoriteButtons[index] = null;
+        }
+        setFavoriteButtons([...newFavoriteButtons]);
+        localStorage.setItem('favoriteButtons', JSON.stringify(newFavoriteButtons));
+    }
+
     const addToFavorites = async (recipe) => {
         try {
-            await addDoc(collection(db, 'favoriteRecipes'), {
+            const docRef = await addDoc(collection(db, 'favoriteRecipes'), {
                 ...recipe
-            })
+            });
+            return docRef.id;
         } catch (error) {
             console.error("Error deleting recipe:", error);
         }
+    }
+
+    const removeFromFavorites = async (recipeId) => {
+        try {
+            const recipeDocRef = doc(db, "favoriteRecipes", recipeId);
+            await deleteDoc(recipeDocRef);
+
+            console.log(`Recipe with ID ${recipeId} has been deleted successfully.`);
+        } catch (error) {
+            console.error("Error deleting recipe:", error);
+        }
+    }
+
+    const handleMouseHover = (index) => {
+        const newHoveredButtons = [...hoveredButtons];
+        newHoveredButtons[index] = !newHoveredButtons[index];
+        setHoveredButtons(newHoveredButtons);
+    }
+    
+    const setFavoriteButtonColor = (index) => {
+        const purple = '#65558F';
+        const grey = '#999';
+        if (favoriteButtons[index]) {
+            if (!hoveredButtons[index]) {
+                return purple;
+            } return grey;
+        }
+        if (hoveredButtons[index]) {
+            return purple;
+        }
+        return grey;
     }
 
     const fetchRecipeImages = async (recipeTitle) => {
@@ -116,7 +169,7 @@ function Home() {
             <div lang="en">
                 <div class="search-container">
                     <input type="text" autoCapitalize="sentences" placeholder="What do you feel like eating?" value={inputValue} onChange={(e) => { setInputValue(e.target.value) }} />
-                    <button class="search-button" onClick={() => { run(inputValue); }}>&#128269;</button>
+                    <button className="search-button" onClick={() => { run(inputValue); }}>&#128269;</button>
                 </div>
                 <button class="custom-button" onClick={() => { navigate(`/favorites`); }}>Favorite Recipes</button>
                 {loading && (
@@ -134,7 +187,11 @@ function Home() {
                                         <p>{recipe.time}</p>
                                     </div>
                                     <div class="recipe-favorite">
-                                        <button onClick={(e) => { e.stopPropagation(); addToFavorites(recipe); }}>&#9829;</button>
+                                        <button
+                                        onClick={(e) => { e.stopPropagation(); handleFavoriteButton(recipe, index) }}
+                                        onMouseEnter={() => handleMouseHover(index)}
+                                        onMouseLeave={() => handleMouseHover(index)}
+                                        style={{color: setFavoriteButtonColor(index)}}>&#9829;</button>
                                     </div>
                                 </div>
                             )
