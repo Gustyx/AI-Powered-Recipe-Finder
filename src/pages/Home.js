@@ -10,6 +10,12 @@ import { collection, addDoc } from 'firebase/firestore'
 const genAI = new GoogleGenerativeAI("AIzaSyCw-sWxsHWzTrKysOqDHlQQF8NhF0vtHoo");
 const UNSPLASH_ACCESS_KEY = 'saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI';
 
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+const chat = model.startChat({
+    history: [],
+});
+const iDontLikeTheseButtonText = "5 others please."
+
 function Home() {
     const [inputValue, setInputValue] = useState('');
     const [fiveRecipes, setFiveRecipes] = useState([]);
@@ -23,19 +29,13 @@ function Home() {
         }
     }, []);
 
-    const run = async () => {
+    const run = async (userInput) => {
         setLoading(true);
         setFiveRecipes([]);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        // const prompt = "Hello! This is an AI powered App I created for a project that find recipies base on an input filter. Please give me a single recipe for " + inputValue +
-        //     ". Answer me exactly like this please:\n" +
-        //     "Title: {recipe title}\n" +
-        //     "Total preparation time: {in minutes}\n" +
-        //     "Ingredients:\n (enumerate with '-')\n" +
-        //     "Instructions:\n (enumerate with digits).\n" +
-        //     "Please use 2 blank lines between each of the 4 properties only and don't use the '*' character in your response.";
 
-        const prompt = "Hello! This is an AI powered App I created for a project that find recipies base on an input filter. Please give me exactly 5 recipes for " + inputValue +
+        const prompt = userInput === iDontLikeTheseButtonText ? iDontLikeTheseButtonText :
+            "Hello! This is an AI powered App I created for a project that find recipies base on an input filter. Please give me exactly 5 recipes for " +
+            userInput +
             ". Answer me exactly like this please:\n" +
             "-----Recipe-----\n" +
             "Title: {recipe title}\n" +
@@ -44,10 +44,13 @@ function Home() {
             "Instructions:\n (enumerate with digits).\n" +
             "Please don't use the '*' character in your response.";
 
-
-        const result = await model.generateContent(prompt);
+        const result = await chat.sendMessage(prompt);
+        // const result = await model.generateContent(prompt);
         const respose = await result.response;
         const text = respose.text();
+
+        // console.log(text);
+
         const recipes = text.split("-----Recipe-----\n");
         const addedRecipes = [];
 
@@ -57,7 +60,7 @@ function Home() {
                 const regex = new RegExp(`(${word})`, 'g');
                 return acc.replace(regex, `\n$1`);
             }, recipes[i]);
-            console.log(modifiedText);
+            // console.log(modifiedText);
 
             const recipeBlocks = modifiedText.split('\n\n');
 
@@ -113,7 +116,7 @@ function Home() {
             <div lang="en">
                 <div class="search-container">
                     <input type="text" autoCapitalize="sentences" placeholder="What do you feel like eating?" value={inputValue} onChange={(e) => { setInputValue(e.target.value) }} />
-                    <button class="search-button" onClick={() => { run(); }}>&#128269;</button>
+                    <button class="search-button" onClick={() => { run(inputValue); }}>&#128269;</button>
                 </div>
                 <button class="custom-button" onClick={() => { navigate(`/favorites`); }}>Favorite Recipes</button>
                 {loading && (
@@ -125,7 +128,7 @@ function Home() {
                         {fiveRecipes.map((recipe, index) => {
                             return (<div key={index} class="recipe-card" onClick={() => { navigate(`/recipeDetailsPage/${index}${recipe.title}`, { state: { element: recipe, favorite: false } }); }} style={{ cursor: 'pointer' }}>
                                 {/* <div class="recipe-small-image"> */}
-                                    <img class ="recipe-small-image" src={recipe.imageUrl} alt={recipe.title} />
+                                <img class="recipe-small-image" src={recipe.imageUrl} alt={recipe.title} />
                                 {/* </div> */}
                                 <div class="recipe-details">
                                     <h3>{recipe.title}</h3>
@@ -136,7 +139,7 @@ function Home() {
                                 </div>
                             </div>)
                         })}
-                        <button class="custom-button" onClick={() => { run(); }}>I don't like these</button>
+                        <button class="custom-button" onClick={() => { run(iDontLikeTheseButtonText); }}>I don't like these</button>
                     </div>
                 )}
             </div>
