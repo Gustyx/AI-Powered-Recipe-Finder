@@ -241,7 +241,8 @@ body {
 }
 
 .recipe-large-image {
-  height: 50%;
+  /* height: 50%; */
+  width: 50%;
   aspect-ratio: 1 / 1;
   background-color: transparent;
   margin-right: 10px;
@@ -251,9 +252,8 @@ body {
 .recipe-title-and-time {
   display: flex;
   justify-content: space-between;
-  width: 100%;
+  width: 50%;
   text-align: left;
-  max-width: 450px;
   margin-top: 5%;
 }
 
