@@ -49,7 +49,7 @@ function Home() {
         const respose = await result.response;
         const text = respose.text();
 
-        // console.log(text);
+        console.log(text);
 
         const recipes = text.split("-----Recipe-----\n");
         const addedRecipes = [];
