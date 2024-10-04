@@ -1,5 +1,3 @@
-import '../App.css';
-import './Favorites';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -97,13 +95,14 @@ function Home() {
 
     const handleFavoriteButton = async (recipe, index) => {
         const newFavoriteButtons = [...favoriteButtons];
-        console.log(newFavoriteButtons[index])
+        
         if (newFavoriteButtons[index] === null) {
             newFavoriteButtons[index] = await addToFavorites(recipe);
         } else {
             await removeFromFavorites(newFavoriteButtons[index]);
             newFavoriteButtons[index] = null;
         }
+
         setFavoriteButtons([...newFavoriteButtons]);
         localStorage.setItem('favoriteButtons', JSON.stringify(newFavoriteButtons));
     }
