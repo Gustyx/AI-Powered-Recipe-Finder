@@ -36,36 +36,37 @@ export default function RecipeDetailsPage() {
     }
 
     return (
-        <div class="container">
-            <div class="left">
-                {/* <div class="recipe-large-image"> */}
-                    <img class="recipe-large-image" src={recipeDetails.imageUrl} alt={recipeDetails.title} />
-                {/* </div> */}
-                <div class="recipe-title-and-time">
-                    <div class="recipe-details-text">
-                        <h3>{recipeDetails.title}</h3>
-                        <p>{recipeDetails.time}</p>
+        <div className="RecipeDetailsPage">
+            <div lang="en">
+                <div class="container">
+                    <div class="left">
+                        <img class="recipe-large-image" src={recipeDetails.imageUrl} alt={recipeDetails.title} />
+                        <div class="recipe-title-and-time">
+                            <div class="recipe-details-text">
+                                <h3>{recipeDetails.title}</h3>
+                                <p>{recipeDetails.time}</p>
+                            </div>
+                            <div class={isFavorite ? "filled-recipe-favorite" : "recipe-favorite"}>
+                                <button type="button" onClick={handeFavoriteButton}>&#9829;</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class={isFavorite ? "filled-recipe-favorite" : "recipe-favorite"}>
-                        <button type="button" onClick={handeFavoriteButton}>&#9829;</button>
-                        {/* <!-- Heart icon --> */}
+                    <div class="right">
+                        <div class="recipe-section">
+                            <div class="recipe-section-title">Ingredients:</div>
+                            <ul class="recipe-dotted-list">
+                                {recipeDetails.ingredients.split("- ").map((ingredient, index) => (
+                                    ingredient && index > 0 && (<li key={index}>{ingredient}</li>)
+                                ))}
+                            </ul>
+                            <div class="recipe-section-title">Instructions:</div>
+                            <ul class="recipe-simple-list">
+                                {recipeDetails.instructions.split("\n").map((instruction, index) => (
+                                    instruction && (<li key={index}>{instruction.substring(3, instruction.length)}</li>)
+                                ))}
+                            </ul>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div class="right">
-                <div class="recipe-section">
-                    <div class="recipe-section-title">Ingredients:</div>
-                    <ul class="recipe-dotted-list">
-                        {recipeDetails.ingredients.split("- ").map((ingredient, index) => (
-                            ingredient && index > 0 && (<li key={index}>{ingredient}</li>)
-                        ))}
-                    </ul>
-                    <div class="recipe-section-title">Instructions:</div>
-                    <ul class="recipe-simple-list">
-                        {recipeDetails.instructions.split("\n").map((instruction, index) => (
-                            instruction && (<li key={index}>{instruction.substring(3, instruction.length)}</li>)
-                        ))}
-                    </ul>
                 </div>
             </div>
         </div>

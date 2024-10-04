@@ -7,6 +7,7 @@ import Spinner from '../components/Spinner';
 
 function Favorites() {
     const [favoriteRecipes, setFavoriteRecipes] = useState([]);
+    const [displayedRecipes, setDisplayedRecipes] = useState([]);
     const [inputValue, setInputValue] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -31,9 +32,24 @@ function Favorites() {
         setLoading(true);
         fetchFavoriteRecipes().then((recipes) => {
             setFavoriteRecipes(recipes);
+            setDisplayedRecipes(recipes);
             setLoading(false);
         });
     }, []);
+
+    useEffect(() => {
+        const filteredRecipes = favoriteRecipes.filter((recipe) => {
+            return recipe.title.toLowerCase().includes(inputValue.toLowerCase());
+        });
+        setDisplayedRecipes(filteredRecipes);
+    }, [inputValue]);
+
+    const searchFavoriteRecipes = () => {
+        const filteredRecipes = favoriteRecipes.filter((recipe) => {
+            return recipe.title.toLowerCase().includes(inputValue.toLowerCase());
+        });
+        setDisplayedRecipes(filteredRecipes);
+    }
 
     const removeFromFavorites = async (recipeId) => {
         try {
@@ -53,7 +69,7 @@ function Favorites() {
             <div lang="en">
                 <div class="search-container">
                     <input type="text" autoCapitalize="sentences" placeholder="What do you feel like eating?" value={inputValue} onChange={(e) => { setInputValue(e.target.value) }} />
-                    <button class="search-button">&#128269;</button>
+                    <button class="search-button" onClick={() => { searchFavoriteRecipes() }}>&#128269;</button>
                 </div>
                 <button class="custom-button" onClick={() => { navigate(`/`); }}>Find new Recipes</button>
                 {loading && (
@@ -62,19 +78,19 @@ function Favorites() {
                 {favoriteRecipes.length !== 0 && (
                     <div class="suggestions-container">
                         <h2>Favorite recipes</h2>
-                        {favoriteRecipes.map((recipe, index) => {
-                            return (<div key={index} class="recipe-card" onClick={() => { navigate(`/recipeDetailsPage/${index}${recipe.title}`, { state: { element: recipe, favorite: true } }); }} style={{ cursor: 'pointer' }}>
-                                {/* <div class="recipe-small-image"> */}
+                        {displayedRecipes.map((recipe, index) => {
+                            return (
+                                <div key={index} class="recipe-card" onClick={() => { navigate(`/recipeDetailsPage/${index}${recipe.title}`, { state: { element: recipe, favorite: true } }); }} style={{ cursor: 'pointer' }}>
                                     <img class="recipe-small-image" src={recipe.imageUrl} alt={recipe.title} />
-                                {/* </div> */}
-                                <div class="recipe-details">
-                                    <h3>{recipe.title}</h3>
-                                    <p>{recipe.time}</p>
+                                    <div class="recipe-details">
+                                        <h3>{recipe.title}</h3>
+                                        <p>{recipe.time}</p>
+                                    </div>
+                                    <div class="filled-recipe-favorite">
+                                        <button onClick={(e) => { e.stopPropagation(); removeFromFavorites(recipe.id); }}>&#9829;</button>
+                                    </div>
                                 </div>
-                                <div class="filled-recipe-favorite">
-                                    <button onClick={(e) => { e.stopPropagation(); removeFromFavorites(recipe.id); }}>&#9829;</button>
-                                </div>
-                            </div>)
+                            )
                         })}
                     </div>
                 )}

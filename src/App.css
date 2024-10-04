@@ -198,10 +198,10 @@ body {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  padding-top: 5%;
+  /* padding-top: 5%; */
   padding-right: 5%;
   padding-left: 10%;
-  background-color: #f5f5f5;
+  /* background-color: #f5f5f5; */
 }
 
 .right {
@@ -211,7 +211,7 @@ body {
   justify-content: flex-start;
   align-items: flex-start;
   text-align: left;
-  padding-top: 5%;
+  /* padding-top: 5%; */
   padding-right: 10%;
   padding-left: 5%;
   font-size: 20px;
@@ -229,7 +229,7 @@ body {
   }
 
   .right {
-    margin-top: 20px; /* Adds spacing between sections when stacked */
+    margin-top: 20px;
   }
 }
 
@@ -238,15 +238,15 @@ body {
   aspect-ratio: 1 / 1;
   background-color: transparent;
   margin-right: 10px;
-  flex-shrink: 0;
+  /* flex-shrink: 0; */
 }
 
 .recipe-title-and-time {
   display: flex;
   justify-content: space-between;
-  width: 50%;
+  width: 100%;
   text-align: left;
-  /* max-width: 400px; */
+  max-width: 450px;
   margin-top: 5%;
 }
 

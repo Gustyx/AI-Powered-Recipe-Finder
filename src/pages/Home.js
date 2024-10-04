@@ -126,18 +126,18 @@ function Home() {
                     <div class="suggestions-container">
                         <h2>Suggested recipes</h2>
                         {fiveRecipes.map((recipe, index) => {
-                            return (<div key={index} class="recipe-card" onClick={() => { navigate(`/recipeDetailsPage/${index}${recipe.title}`, { state: { element: recipe, favorite: false } }); }} style={{ cursor: 'pointer' }}>
-                                {/* <div class="recipe-small-image"> */}
-                                <img class="recipe-small-image" src={recipe.imageUrl} alt={recipe.title} />
-                                {/* </div> */}
-                                <div class="recipe-details">
-                                    <h3>{recipe.title}</h3>
-                                    <p>{recipe.time}</p>
+                            return (
+                                <div key={index} class="recipe-card" onClick={() => { navigate(`/recipeDetailsPage/${index}${recipe.title}`, { state: { element: recipe, favorite: false } }); }} style={{ cursor: 'pointer' }}>
+                                    <img class="recipe-small-image" src={recipe.imageUrl} alt={recipe.title} />
+                                    <div class="recipe-details">
+                                        <h3>{recipe.title}</h3>
+                                        <p>{recipe.time}</p>
+                                    </div>
+                                    <div class="recipe-favorite">
+                                        <button onClick={(e) => { e.stopPropagation(); addToFavorites(recipe); }}>&#9829;</button>
+                                    </div>
                                 </div>
-                                <div class="recipe-favorite">
-                                    <button onClick={(e) => { e.stopPropagation(); addToFavorites(recipe); }}>&#9829;</button>
-                                </div>
-                            </div>)
+                            )
                         })}
                         <button class="custom-button" onClick={() => { run(iDontLikeTheseButtonText); }}>I don't like these</button>
                     </div>
