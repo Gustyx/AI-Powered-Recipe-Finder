@@ -7,8 +7,8 @@ import Spinner from '../components/Spinner';
 import { db } from '../firebase.config'
 import { collection, addDoc, doc, deleteDoc } from 'firebase/firestore'
 
-const genAI = new GoogleGenerativeAI("AIzaSyCw-sWxsHWzTrKysOqDHlQQF8NhF0vtHoo");
-const UNSPLASH_ACCESS_KEY = 'saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI';
+const genAI = new GoogleGenerativeAI(process.env.REACT_APP_GEMINI_API_KEY);
+const UNSPLASH_ACCESS_KEY = process.env.REACT_APP_UNSPLASH_ACCESS_KEY;
 
 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 const chat = model.startChat({
