@@ -38,9 +38,9 @@ export default function RecipeDetailsPage() {
     return (
         <div class="container">
             <div class="left">
-                <div class="recipe-large-image">
-                    <img src={recipeDetails.imageUrl} alt={recipeDetails.title} style={{ width: '100%', height: '100%' }} />
-                </div>
+                {/* <div class="recipe-large-image"> */}
+                    <img class="recipe-large-image" src={recipeDetails.imageUrl} alt={recipeDetails.title} />
+                {/* </div> */}
                 <div class="recipe-title-and-time">
                     <div class="recipe-details-text">
                         <h3>{recipeDetails.title}</h3>

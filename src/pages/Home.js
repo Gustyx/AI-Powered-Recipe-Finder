@@ -8,7 +8,7 @@ import { db } from '../firebase.config'
 import { collection, addDoc } from 'firebase/firestore'
 
 const genAI = new GoogleGenerativeAI("AIzaSyCw-sWxsHWzTrKysOqDHlQQF8NhF0vtHoo");
-const UNSPLASH_ACCESS_KEY = 'saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI'; // Replace with your API key
+const UNSPLASH_ACCESS_KEY = 'saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI';
 
 function Home() {
     const [inputValue, setInputValue] = useState('');
@@ -42,7 +42,6 @@ function Home() {
             "Total preparation time: {in minutes}\n" +
             "Ingredients:\n (enumerate with '-')\n" +
             "Instructions:\n (enumerate with digits).\n" +
-            // "Please add 2 additional blank rows between each of the properties (Title, Total preparation time, Ingredients, Instructions) of each recipe and don't use the '*' character in your response.";
             "Please don't use the '*' character in your response.";
 
 
@@ -73,8 +72,8 @@ function Home() {
                 recipe.time = recipe.time + " minutes";
             }
             const recipeImage = await fetchRecipeImages(recipe.title);
-            recipe = {...recipe, imageUrl: recipeImage};
-            
+            recipe = { ...recipe, imageUrl: recipeImage };
+
             addedRecipes.push(recipe);
         }
 
@@ -94,56 +93,52 @@ function Home() {
     }
 
     const fetchRecipeImages = async (recipeTitle) => {
-            try {
-                const response = await fetch(`https://api.unsplash.com/search/photos?query=${recipeTitle}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=1`);
-                const data = await response.json();
+        try {
+            const response = await fetch(`https://api.unsplash.com/search/photos?query=${recipeTitle}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=1`);
+            const data = await response.json();
 
-                if (data.results && data.results.length > 0) {
-                    return data.results[0].urls.small;
-                } else {
-                    return "https://via.placeholder.com/400";
-                }
-            } catch (error) {
-                console.error("Error fetching image:", error);
+            if (data.results && data.results.length > 0) {
+                return data.results[0].urls.small;
+            } else {
                 return "https://via.placeholder.com/400";
             }
+        } catch (error) {
+            console.error("Error fetching image:", error);
+            return "https://via.placeholder.com/400";
+        }
     }
 
     return (
         <div className="Home">
             <div lang="en">
-                {/* <body> */}
-                    <div class="search-container">
-                        <input type="text" autoCapitalize="sentences" placeholder="What do you feel like eating?" value={inputValue} onChange={(e) => { setInputValue(e.target.value) }} />
-                        <button class="search-button" onClick={ () => { run(); }}>&#128269;</button>
-                        {/* <!-- Magnifying glass icon --> */}
+                <div class="search-container">
+                    <input type="text" autoCapitalize="sentences" placeholder="What do you feel like eating?" value={inputValue} onChange={(e) => { setInputValue(e.target.value) }} />
+                    <button class="search-button" onClick={() => { run(); }}>&#128269;</button>
+                </div>
+                <button class="custom-button" onClick={() => { navigate(`/favorites`); }}>Favorite Recipes</button>
+                {loading && (
+                    <Spinner />
+                )}
+                {fiveRecipes.length !== 0 && (
+                    <div class="suggestions-container">
+                        <h2>Suggested recipes</h2>
+                        {fiveRecipes.map((recipe, index) => {
+                            return (<div key={index} class="recipe-card" onClick={() => { navigate(`/recipeDetailsPage/${index}${recipe.title}`, { state: { element: recipe, favorite: false } }); }} style={{ cursor: 'pointer' }}>
+                                {/* <div class="recipe-small-image"> */}
+                                    <img class ="recipe-small-image" src={recipe.imageUrl} alt={recipe.title} />
+                                {/* </div> */}
+                                <div class="recipe-details">
+                                    <h3>{recipe.title}</h3>
+                                    <p>{recipe.time}</p>
+                                </div>
+                                <div class="recipe-favorite">
+                                    <button onClick={(e) => { e.stopPropagation(); addToFavorites(recipe); }}>&#9829;</button>
+                                </div>
+                            </div>)
+                        })}
+                        <button class="custom-button" onClick={() => { run(); }}>I don't like these</button>
                     </div>
-                    <button class="custom-button" onClick={() => { navigate(`/favorites`); }}>Favorite Recipes</button>
-                    {loading && (
-                        <Spinner />
-                    )}
-                    {fiveRecipes.length !== 0 && (
-                        <div class="suggestions-container">
-                            <h2>Suggested recipes</h2>
-                            {fiveRecipes.map((recipe, index) => {
-                                return (<div key={index} class="recipe-card" onClick={() => { navigate(`/recipeDetailsPage/${index}${recipe.title}`, { state: { element: recipe, favorite: false } }); }} style={{ cursor: 'pointer' }}>
-                                    <div class="recipe-small-image">
-                                        <img src={recipe.imageUrl} alt={recipe.title} style={{ width: '100%', height: '100%', borderTopLeftRadius: '15px', borderBottomLeftRadius: '15px' }} />
-                                    </div>
-                                    <div class="recipe-details">
-                                        <h3>{recipe.title}</h3>
-                                        <p>{recipe.time}</p>
-                                    </div>
-                                    <div class="recipe-favorite">
-                                        <button onClick={(e) => { e.stopPropagation(); addToFavorites(recipe); }}>&#9829;</button>
-                                        {/* <!-- Heart icon --> */}
-                                    </div>
-                                </div>)
-                            })}
-                            <button class="custom-button" onClick={() => { run(); }}>I don't like these</button>
-                        </div>
-                    )}
-                {/* </body> */}
+                )}
             </div>
         </div>
     );
