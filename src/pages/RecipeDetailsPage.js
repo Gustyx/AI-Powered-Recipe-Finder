@@ -14,6 +14,8 @@ export default function RecipeDetailsPage() {
             await addDoc(collection(db, 'favoriteRecipes'), {
                 ...recipe
             })
+
+            console.log(`Recipe has been added successfully.`);
         } catch (error) {
             console.error("Error deleting recipe:", error);
         }

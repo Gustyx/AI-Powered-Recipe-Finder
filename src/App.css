@@ -37,7 +37,6 @@
   }
 }
 
-/*  */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 
 * {
@@ -58,7 +57,6 @@ body {
   z-index: 10;
   display: flex;
   justify-content: center;
-  /* position: relative; */
   margin-bottom: 20px;
   max-width: 384px;
   margin: 0 auto 20px auto;
@@ -70,7 +68,7 @@ body {
   font-size: 16px;
   border-radius: 25px;
   border: 1px solid #ccc;
-  padding-right: 45px; /* Space for the button */
+  padding-right: 45px;
 }
 
 .search-button {
@@ -90,8 +88,6 @@ body {
 }
 
 .suggestions-container {
-  /* justify-content: center;
-  align-items: left; */
   text-align: center;
   padding-top: 50px;
   max-width: 384px;
@@ -114,8 +110,6 @@ body {
 .recipe-card {
   display: flex;
   text-align: left;
-  /* align-self: flex-start; */
-  /* align-items: flex-start; */
   margin-top: 15px;
   margin-bottom: 15px;
   background-color: #fff;
@@ -148,7 +142,6 @@ body {
 }
 
 .recipe-favorite {
-  /* margin-left: 10px; */
   margin-right: 10px;
   align-self: center;
 }
@@ -166,7 +159,6 @@ body {
 }
 
 .filled-recipe-favorite {
-  /* margin-left: 10px; */
   margin-right: 10px;
   align-self: center;
 }
@@ -183,16 +175,6 @@ body {
   color: #999;
 }
 
-/* .filled-recipe-favorite button:hover::before {
-  content: "♡";
-  position: absolute;
-  background-color: white;
-  color: #999;
-} */
-
-/*  */
-
-
 .container {
   display: flex;
   height: 100vh;
@@ -204,10 +186,8 @@ body {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  /* padding-top: 5%; */
   padding-right: 5%;
   padding-left: 10%;
-  /* background-color: #f5f5f5; */
 }
 
 .right {
@@ -217,7 +197,6 @@ body {
   justify-content: flex-start;
   align-items: flex-start;
   text-align: left;
-  /* padding-top: 5%; */
   padding-right: 10%;
   padding-left: 5%;
   font-size: 20px;
@@ -240,12 +219,10 @@ body {
 }
 
 .recipe-large-image {
-  /* height: 50%; */
   width: 50%;
   aspect-ratio: 1 / 1;
   background-color: transparent;
   margin-right: 10px;
-  /* flex-shrink: 0; */
 }
 
 .recipe-title-and-time {
@@ -273,7 +250,6 @@ body {
 
 .recipe-section {
   margin-bottom: 20px;
-  
 }
 
 .recipe-section > * {
@@ -302,10 +278,6 @@ body {
 .recipe-simple-list li {
   margin-bottom: 5px;
 }
-
-
-/*  */
-
 
 .custom-button {
   background-color: #65558F;

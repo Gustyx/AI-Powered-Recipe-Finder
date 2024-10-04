@@ -54,12 +54,10 @@ function Home() {
 
         try {
             setCaughtError(false);
+
             const result = await chat.sendMessage(prompt);
             const respose = await result.response;
             const text = respose.text().replace(/\*/g, '');
-
-            console.log(text);
-
             const recipes = text.split("-----Recipe-----\n");
             const addedRecipes = [];
 
@@ -71,7 +69,6 @@ function Home() {
                 }, recipes[i]);
 
                 const recipeBlocks = modifiedText.split('\n\n');
-
                 let recipe = {
                     title: recipeBlocks[0].substring(recipeBlocks[0].indexOf(':') + 2, recipeBlocks[0].length),
                     time: recipeBlocks[1].substring(recipeBlocks[1].indexOf(':') + 2, recipeBlocks[1].length),
@@ -87,10 +84,8 @@ function Home() {
 
                 addedRecipes.push(recipe);
             }
-
             setFiveRecipes(addedRecipes);
             setLoading(false);
-
             localStorage.setItem('fiveRecipes', JSON.stringify(addedRecipes));
         } catch (error) {
             setCaughtError(true);
@@ -118,6 +113,9 @@ function Home() {
             const docRef = await addDoc(collection(db, 'favoriteRecipes'), {
                 ...recipe
             });
+
+            console.log(`Recipe has been added successfully.`);
+            
             return docRef.id;
         } catch (error) {
             console.error("Error deleting recipe:", error);

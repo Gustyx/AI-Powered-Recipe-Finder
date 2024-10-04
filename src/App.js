@@ -8,13 +8,11 @@ import Favorites from './pages/Favorites';
 function App() {
   useEffect(() => {
     const handleBeforeUnload = () => {
-      localStorage.clear(); // Clear local storage
-      console.log("DA");
+      localStorage.clear();
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // Cleanup function to remove the event listener
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
