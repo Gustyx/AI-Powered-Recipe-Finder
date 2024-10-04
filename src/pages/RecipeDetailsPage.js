@@ -12,14 +12,11 @@ export default function RecipeDetailsPage() {
     const addToFavorites = async (recipe) => {
         try {
             await addDoc(collection(db, 'favoriteRecipes'), {
-              title: recipe.title,
-              time: recipe.time,
-              ingredients: recipe.ingredients,
-              instructions: recipe.instructions
+                ...recipe
             })
-          } catch (error) {
+        } catch (error) {
             console.error("Error deleting recipe:", error);
-          }
+        }
     }
 
     const removeFromFavorites = async (recipeId) => {
@@ -28,9 +25,9 @@ export default function RecipeDetailsPage() {
             await deleteDoc(recipeDocRef);
 
             console.log(`Recipe with ID ${recipeId} has been deleted successfully.`);
-          } catch (error) {
+        } catch (error) {
             console.error("Error deleting recipe:", error);
-          }
+        }
     }
 
     const handeFavoriteButton = async () => {
@@ -41,7 +38,9 @@ export default function RecipeDetailsPage() {
     return (
         <div class="container">
             <div class="left">
-                <img src="https://via.placeholder.com/400x400" alt="Mashed Potatoes Image" />
+                <div class="recipe-large-image">
+                    <img src={recipeDetails.imageUrl} alt={recipeDetails.title} style={{ width: '100%', height: '100%' }} />
+                </div>
                 <div class="recipe-title-and-time">
                     <div class="recipe-details-text">
                         <h3>{recipeDetails.title}</h3>

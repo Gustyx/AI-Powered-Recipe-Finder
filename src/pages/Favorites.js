@@ -15,19 +15,13 @@ function Favorites() {
         const fetchFavoriteRecipes = async () => {
             const recipesCollection = collection(db, "favoriteRecipes");
             try {
-                const q = query(recipesCollection, orderBy("createdAt"));
-                
-                // Fetch all documents in the collection
                 const snapshot = await getDocs(recipesCollection);
 
-                // Create an array of documents
                 const recipes = snapshot.docs.map((doc) => ({
-                    id: doc.id,  // document ID
-                    ...doc.data()  // document data
+                    id: doc.id,
+                    ...doc.data()
                 }));
 
-                // Log the recipes or update your state
-                console.log(recipes);
                 return recipes;
 
             } catch (error) {
@@ -36,7 +30,6 @@ function Favorites() {
         }
         fetchFavoriteRecipes().then((recipes) => {
             setFavoriteRecipes(recipes);
-            console.log("F", favoriteRecipes);
         });
     }, []);
 
@@ -47,20 +40,20 @@ function Favorites() {
 
             setFavoriteRecipes((prevRecipes) => prevRecipes.filter(recipe => recipe.id !== recipeId));
             console.log(`Recipe with ID ${recipeId} has been deleted successfully.`);
-          } catch (error) {
+        } catch (error) {
             console.error("Error deleting recipe:", error);
-          }
+        }
     }
 
     return (
         <div className="Favorites">
             <div lang="en">
-                <body>
                     <div class="search-container">
                         <input type="text" autoCapitalize="sentences" placeholder="What do you feel like eating?" value={inputValue} onChange={(e) => { setInputValue(e.target.value) }} />
                         <button class="search-button">&#128269;</button>
                         {/* <!-- Magnifying glass icon --> */}
                     </div>
+                    <button class="custom-button" onClick={() => { navigate(`/`); }}>Find new Recipes</button>
                     {loading && (
                         <Spinner />
                     )}
@@ -68,8 +61,10 @@ function Favorites() {
                         <div class="suggestions-container">
                             <h2>Favorite recipes</h2>
                             {favoriteRecipes.map((recipe, index) => {
-                               return (<div key={index} class="recipe-card" onClick={() => { navigate(`/recipeDetailsPage/${index}${recipe.title}`, { state: { element: recipe, favorite: true } }); }} style={{ cursor: 'pointer' }}>
-                                    <div class="recipe-image"></div>
+                                return (<div key={index} class="recipe-card" onClick={() => { navigate(`/recipeDetailsPage/${index}${recipe.title}`, { state: { element: recipe, favorite: true } }); }} style={{ cursor: 'pointer' }}>
+                                    <div class="recipe-small-image">
+                                        <img src={recipe.imageUrl} alt={recipe.title} style={{ width: '100%', height: '100%', borderTopLeftRadius: '15px', borderBottomLeftRadius: '15px' }} />
+                                    </div>
                                     <div class="recipe-details">
                                         <h3>{recipe.title}</h3>
                                         <p>{recipe.time}</p>
@@ -82,7 +77,6 @@ function Favorites() {
                             })}
                         </div>
                     )}
-                </body>
             </div>
         </div>
     );

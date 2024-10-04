@@ -15,7 +15,6 @@ function Home() {
     const [fiveRecipes, setFiveRecipes] = useState([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const [imageUrls, setImageUrls] = useState("https://via.placeholder.com/400");
 
     useEffect(() => {
         const storedRecipes = localStorage.getItem('fiveRecipes');
@@ -24,7 +23,7 @@ function Home() {
         }
     }, []);
 
-    async function run() {
+    const run = async () => {
         setLoading(true);
         setFiveRecipes([]);
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
@@ -75,75 +74,48 @@ function Home() {
             }
             const recipeImage = await fetchRecipeImages(recipe.title);
             recipe = {...recipe, imageUrl: recipeImage};
-            console.log("R:", recipe)
-
+            
             addedRecipes.push(recipe);
-            // console.log("RECIPE______________");
-            // console.log(recipe);
         }
 
         setFiveRecipes(addedRecipes);
-        // fetchRecipeImages();
-        localStorage.setItem('fiveRecipes', JSON.stringify(addedRecipes)); // Store in local storage
+        localStorage.setItem('fiveRecipes', JSON.stringify(addedRecipes));
         setLoading(false);
-        console.log("URL:",imageUrls);
     }
 
     const addToFavorites = async (recipe) => {
         try {
             await addDoc(collection(db, 'favoriteRecipes'), {
-                title: recipe.title,
-                time: recipe.time,
-                ingredients: recipe.ingredients,
-                instructions: recipe.instructions
+                ...recipe
             })
         } catch (error) {
             console.error("Error deleting recipe:", error);
         }
     }
 
-    // Fetch image based on recipe title when component mounts
-    // useEffect(() => {
-    //     async function getImages() {
-    //         const fetchedImageUrls = await fetchRecipeImage(recipe.title);
-    //         setImageUrl(fetchedImageUrl);
-    //     }
-    //     getImage();
-    // }, [recipe.title]);
-
-    async function fetchRecipeImages(recipeTitle) {
-        // for (const recipe in fiveRecipes) {
+    const fetchRecipeImages = async (recipeTitle) => {
             try {
                 const response = await fetch(`https://api.unsplash.com/search/photos?query=${recipeTitle}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=1`);
                 const data = await response.json();
 
-                // console.log("DATA:",data)
-
                 if (data.results && data.results.length > 0) {
-                    // setImageUrls(data.results[0].urls.small); // Return the URL of the first image found
-                    // console.log("gasita",imageUrls)
                     return data.results[0].urls.small;
                 } else {
-                    // setImageUrls("https://via.placeholder.com/400"); // Fallback image if no results found
-                    // console.log("negasita",imageUrls)
                     return "https://via.placeholder.com/400";
                 }
             } catch (error) {
                 console.error("Error fetching image:", error);
-                // setImageUrls("https://via.placeholder.com/400"); // Fallback in case of error
-                // console.log("erroare",imageUrls)
                 return "https://via.placeholder.com/400";
             }
-        // }
     }
 
     return (
         <div className="Home">
             <div lang="en">
-                <body>
+                {/* <body> */}
                     <div class="search-container">
                         <input type="text" autoCapitalize="sentences" placeholder="What do you feel like eating?" value={inputValue} onChange={(e) => { setInputValue(e.target.value) }} />
-                        <button class="search-button" onClick={run}>&#128269;</button>
+                        <button class="search-button" onClick={ () => { run(); }}>&#128269;</button>
                         {/* <!-- Magnifying glass icon --> */}
                     </div>
                     <button class="custom-button" onClick={() => { navigate(`/favorites`); }}>Favorite Recipes</button>
@@ -155,7 +127,7 @@ function Home() {
                             <h2>Suggested recipes</h2>
                             {fiveRecipes.map((recipe, index) => {
                                 return (<div key={index} class="recipe-card" onClick={() => { navigate(`/recipeDetailsPage/${index}${recipe.title}`, { state: { element: recipe, favorite: false } }); }} style={{ cursor: 'pointer' }}>
-                                    <div class="recipe-image">
+                                    <div class="recipe-small-image">
                                         <img src={recipe.imageUrl} alt={recipe.title} style={{ width: '100%', height: '100%', borderTopLeftRadius: '15px', borderBottomLeftRadius: '15px' }} />
                                     </div>
                                     <div class="recipe-details">
@@ -168,10 +140,10 @@ function Home() {
                                     </div>
                                 </div>)
                             })}
-                            <button class="custom-button" onClick={() => { }}>I don't like these</button>
+                            <button class="custom-button" onClick={() => { run(); }}>I don't like these</button>
                         </div>
                     )}
-                </body>
+                {/* </body> */}
             </div>
         </div>
     );

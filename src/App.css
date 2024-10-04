@@ -116,12 +116,20 @@ body {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.recipe-image {
+.recipe-small-image {
   width: 88px;
   height: 88px;
-  background-color: #f50c0c;
+  background-color: transparent;
   border-top-left-radius: 15px;
   border-bottom-left-radius: 15px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.recipe-large-image {
+  width: 400px;
+  height: 400px;
+  background-color: transparent;
   margin-right: 10px;
   flex-shrink: 0;
 }
