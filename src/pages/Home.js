@@ -8,12 +8,14 @@ import { db } from '../firebase.config'
 import { collection, addDoc } from 'firebase/firestore'
 
 const genAI = new GoogleGenerativeAI("AIzaSyCw-sWxsHWzTrKysOqDHlQQF8NhF0vtHoo");
+const UNSPLASH_ACCESS_KEY = 'saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI'; // Replace with your API key
 
 function Home() {
     const [inputValue, setInputValue] = useState('');
     const [fiveRecipes, setFiveRecipes] = useState([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const [imageUrls, setImageUrls] = useState("https://via.placeholder.com/400");
 
     useEffect(() => {
         const storedRecipes = localStorage.getItem('fiveRecipes');
@@ -71,6 +73,9 @@ function Home() {
             if (recipe.time.length < 6) {
                 recipe.time = recipe.time + " minutes";
             }
+            const recipeImage = await fetchRecipeImages(recipe.title);
+            recipe = {...recipe, imageUrl: recipeImage};
+            console.log("R:", recipe)
 
             addedRecipes.push(recipe);
             // console.log("RECIPE______________");
@@ -78,8 +83,10 @@ function Home() {
         }
 
         setFiveRecipes(addedRecipes);
+        // fetchRecipeImages();
         localStorage.setItem('fiveRecipes', JSON.stringify(addedRecipes)); // Store in local storage
         setLoading(false);
+        console.log("URL:",imageUrls);
     }
 
     const addToFavorites = async (recipe) => {
@@ -93,6 +100,41 @@ function Home() {
         } catch (error) {
             console.error("Error deleting recipe:", error);
         }
+    }
+
+    // Fetch image based on recipe title when component mounts
+    // useEffect(() => {
+    //     async function getImages() {
+    //         const fetchedImageUrls = await fetchRecipeImage(recipe.title);
+    //         setImageUrl(fetchedImageUrl);
+    //     }
+    //     getImage();
+    // }, [recipe.title]);
+
+    async function fetchRecipeImages(recipeTitle) {
+        // for (const recipe in fiveRecipes) {
+            try {
+                const response = await fetch(`https://api.unsplash.com/search/photos?query=${recipeTitle}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=1`);
+                const data = await response.json();
+
+                // console.log("DATA:",data)
+
+                if (data.results && data.results.length > 0) {
+                    // setImageUrls(data.results[0].urls.small); // Return the URL of the first image found
+                    // console.log("gasita",imageUrls)
+                    return data.results[0].urls.small;
+                } else {
+                    // setImageUrls("https://via.placeholder.com/400"); // Fallback image if no results found
+                    // console.log("negasita",imageUrls)
+                    return "https://via.placeholder.com/400";
+                }
+            } catch (error) {
+                console.error("Error fetching image:", error);
+                // setImageUrls("https://via.placeholder.com/400"); // Fallback in case of error
+                // console.log("erroare",imageUrls)
+                return "https://via.placeholder.com/400";
+            }
+        // }
     }
 
     return (
@@ -113,7 +155,9 @@ function Home() {
                             <h2>Suggested recipes</h2>
                             {fiveRecipes.map((recipe, index) => {
                                 return (<div key={index} class="recipe-card" onClick={() => { navigate(`/recipeDetailsPage/${index}${recipe.title}`, { state: { element: recipe, favorite: false } }); }} style={{ cursor: 'pointer' }}>
-                                    <div class="recipe-image"></div>
+                                    <div class="recipe-image">
+                                        <img src={recipe.imageUrl} alt={recipe.title} style={{ width: '100%', height: '100%', borderTopLeftRadius: '15px', borderBottomLeftRadius: '15px' }} />
+                                    </div>
                                     <div class="recipe-details">
                                         <h3>{recipe.title}</h3>
                                         <p>{recipe.time}</p>
