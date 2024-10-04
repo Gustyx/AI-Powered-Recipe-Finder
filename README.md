@@ -2,6 +2,7 @@
 ![image](https://github.com/user-attachments/assets/d22e307c-ce63-4907-ab58-f98548aa7fee)
 ![image](https://github.com/user-attachments/assets/4b6ef533-754f-4cbb-973b-2d8a7a40450c)
 ![image](https://github.com/user-attachments/assets/be830275-becf-4cd1-8dbf-44a2a867b17a)
+
 https://ai-powered-recipe-finder.vercel.app/
 
 # Getting Started with Create React App
