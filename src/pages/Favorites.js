@@ -24,7 +24,6 @@ function Favorites() {
                 }));
 
                 return recipes;
-
             } catch (error) {
                 console.error("Error fetching recipes:", error);
             }
