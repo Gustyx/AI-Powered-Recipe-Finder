@@ -135,12 +135,11 @@ body {
 
 .recipe-details {
   flex-grow: 1;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 .recipe-details h3 {
   font-size: 18px;
-  margin-bottom: 10px;
 }
 
 .recipe-details p {
