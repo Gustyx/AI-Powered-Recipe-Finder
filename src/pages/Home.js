@@ -221,7 +221,6 @@ function Home() {
         : [...prev, allergy]; // Add if not selected
 
       // Save to localStorage
-      console.log(updatedAllergies);
       localStorage.setItem("allergies", JSON.stringify(updatedAllergies));
 
       return updatedAllergies;
@@ -231,8 +230,17 @@ function Home() {
   return (
     <div className="Home">
       <div lang="en">
-        <div onClick={() => setShowModal(true)}>
-          <button class="custom-button">Alergy</button>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "25px",
+            marginBottom: "10px",
+          }}
+        >
+          <button class="custom-button" onClick={() => setShowModal(true)}>
+            Allergy
+          </button>
           <button
             class="custom-button"
             onClick={() => {
