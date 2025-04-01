@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import RecipeDetailsPage from "./pages/RecipeDetailsPage";
 import Favorites from "./pages/Favorites";
 import Kart from "./pages/Kart";
+import Register from "./pages/Register";
 
 function App() {
   useEffect(() => {
@@ -29,6 +30,7 @@ function App() {
         />
         <Route path="favorites" element={<Favorites />} />
         <Route path="kart" element={<Kart />} />
+        <Route path="register" element={<Register />} />
       </Routes>
     </div>
   );
