@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { auth } from "../firebase.config";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase.config";
 import { useNavigate } from "react-router-dom";
@@ -7,6 +9,34 @@ import Spinner from "../components/Spinner";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const [popupMessage, setPopupMessage] = useState("");
+
+  const handlePopupMessage = (message) => {
+    setPopupMessage(message);
+
+    // Hide the popup after 2 seconds
+    setTimeout(() => {
+      setPopupMessage("");
+    }, 2000);
+  };
+
+  const signIn = () => {
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        navigate("/home");
+      })
+      .catch((error) => {
+        if (error.code === "auth/invalid-credential") {
+          handlePopupMessage("Login credentials are invalid!");
+        }
+        if (error.code === "auth/invalid-email") {
+          handlePopupMessage("That email address is invalid!");
+        }
+        console.error(error);
+      });
+  };
 
   return (
     <div className="Login">
@@ -36,7 +66,7 @@ function Login() {
             }}
           />
         </div>
-        <button class="custom-button" onClick={() => {}}>
+        <button class="custom-button" onClick={signIn}>
           Log in
         </button>
         <div style={{ padding: "25px", fontSize: "20px" }}>
@@ -55,6 +85,24 @@ function Login() {
         </div>
         {/* {loading && <Spinner />} */}
       </div>
+      {popupMessage && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#333",
+            color: "#fff",
+            padding: "10px 15px",
+            borderRadius: "5px",
+            fontSize: "14px",
+            opacity: "0.9",
+          }}
+        >
+          {popupMessage}
+        </div>
+      )}
     </div>
   );
 }

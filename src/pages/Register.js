@@ -3,13 +3,12 @@ import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
 import { auth, db } from "../firebase.config";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 
 function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-
   const [popupMessage, setPopupMessage] = useState("");
 
   const handlePopupMessage = (message) => {
@@ -22,23 +21,21 @@ function Register() {
   };
 
   const signUp = () => {
-    console.log(auth);
-    console.log(email);
-    console.log(password);
     createUserWithEmailAndPassword(auth, email, password)
       .then(async (userCredential) => {
         const user = userCredential.user;
         console.log(user);
         try {
-          await setDoc(user.uid, {
-            vegan: 0,
+          //await setDoc(user.uid, {
+          //vegan: 0,
+          //});
+          const docRef = await addDoc(collection(db, "users"), {
+            vegan: 1,
           });
-          // .then(() => {
-          //handlePopupMessage("User created successfully!");
           navigate("/home");
-          // })
         } catch (error) {
           handlePopupMessage("Error:", error.message);
+          console.log(error);
         }
       })
       .catch((error) => {
