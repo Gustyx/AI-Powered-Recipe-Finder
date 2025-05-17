@@ -10,6 +10,23 @@ function Register() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const [popupMessage, setPopupMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [selectedAllergies, setSelectedAllergies] = useState([]);
+  const allergies = ["Vegetarian", "Vegan", "Gluten", "Dairy", "Diabetic"];
+
+  const handleCheckboxChange = (allergy) => {
+    setSelectedAllergies((prev) => {
+      const updatedAllergies = prev.includes(allergy)
+        ? prev.filter((item) => item !== allergy) // Remove if already selected
+        : [...prev, allergy]; // Add if not selected
+
+      // Save to localStorage
+      localStorage.setItem("allergies", JSON.stringify(updatedAllergies));
+
+      return updatedAllergies;
+    });
+    console.log(selectedAllergies);
+  };
 
   const handlePopupMessage = (message) => {
     setPopupMessage(message);
@@ -21,16 +38,14 @@ function Register() {
   };
 
   const signUp = () => {
+    setShowModal(false);
     createUserWithEmailAndPassword(auth, email, password)
       .then(async (userCredential) => {
         const user = userCredential.user;
         console.log(user);
         try {
-          //await setDoc(user.uid, {
-          //vegan: 0,
-          //});
-          const docRef = await addDoc(collection(db, "users"), {
-            vegan: 1,
+          const docRef = await setDoc(doc(db, "users", user.uid), {
+            preferences: selectedAllergies,
           });
           navigate("/home");
         } catch (error) {
@@ -81,7 +96,7 @@ function Register() {
         <button
           class="custom-button"
           onClick={() => {
-            signUp();
+            setShowModal(true);
           }}
         >
           Create Account
@@ -101,6 +116,28 @@ function Register() {
           </a>
         </div>
         {/* {loading && <Spinner />} */}
+        {showModal && (
+          <div className="modal-overlay" onClick={() => setShowModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>Select Preferences</h2>
+              <div className="allergy-options">
+                {allergies.map((allergy) => (
+                  <label key={allergy}>
+                    <input
+                      type="checkbox"
+                      //checked={selectedAllergies.includes(allergy)}
+                      onChange={() => handleCheckboxChange(allergy)}
+                    />
+                    {allergy}
+                  </label>
+                ))}
+              </div>
+              <button className="close-button" onClick={() => signUp()}>
+                Ready!
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       {popupMessage && (
         <div
