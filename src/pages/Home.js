@@ -61,19 +61,38 @@ function Home() {
       JSON.stringify([null, null, null, null, null])
     );
 
-    const prompt =
-      userInput === iDontLikeTheseButtonText
-        ? iDontLikeTheseButtonText
-        : "Hello! This is an AI powered App I created for a project that find recipies base on an input filter. Please give me exactly 5 recipes for " +
-          userInput +
-          ".Consider I am " +
-          selectedAllergies +
-          ". Answer me exactly like this please:\n" +
-          "-----Recipe-----\n" +
-          "Title: {recipe title}\n" +
-          "Total preparation time: {in minutes}\n" +
-          "Ingredients:\n (enumerate with '-')\n" +
-          "Instructions:\n (enumerate with digits).\n";
+
+    let productsScraped = [];
+    try {
+      // Corrected file path and handling
+      const response = await fetch(`/productsEnglish`);
+  
+      if (!response.ok) {
+        throw new Error("File not found or failed to load.");
+      }
+  
+      const data = await response.text();
+      productsScraped = data.split('\n').map((item) => item.trim()).filter(Boolean);
+      console.log("Products loaded successfully:", productsScraped);
+    } catch (err) {
+      console.error("Error loading products:", err);
+      setCaughtError(true);
+      setLoading(false);
+      return;
+    }
+
+        const prompt = 
+        userInput === iDontLikeTheseButtonText
+          ? iDontLikeTheseButtonText
+          : "Hello! This is an AI-powered app that I created for a project to find recipes based on available ingredients. " +
+  "Please find exactly 5 recipes that use ingredients from my list of products. " +
+  "The ingredients are: " + productsScraped + ". " +
+  "Consider that I am " + selectedAllergies + ". Please respond exactly in the following format:\n" +
+  "-----Recipe-----\n" +
+  "Title: {recipe title}\n" +
+  "Total preparation time: {in minutes}\n" +
+  "Ingredients:\n (enumerate with '-')\n" +
+  "Instructions:\n (enumerate with numbers).\n";
 
     try {
       setCaughtError(false);
