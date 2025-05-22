@@ -1,17 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
 import { auth, db } from "../firebase.config";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, addDoc, collection } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 
 function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
   const [popupMessage, setPopupMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [selectedAllergies, setSelectedAllergies] = useState([]);
+  const navigate = useNavigate();
   const allergies = ["Vegetarian", "Vegan", "Gluten", "Dairy", "Diabetic"];
 
   const handleCheckboxChange = (allergy) => {
@@ -20,12 +21,8 @@ function Register() {
         ? prev.filter((item) => item !== allergy) // Remove if already selected
         : [...prev, allergy]; // Add if not selected
 
-      // Save to localStorage
-      localStorage.setItem("allergies", JSON.stringify(updatedAllergies));
-
       return updatedAllergies;
     });
-    console.log(selectedAllergies);
   };
 
   const handlePopupMessage = (message) => {
@@ -38,15 +35,16 @@ function Register() {
   };
 
   const signUp = () => {
-    setShowModal(false);
+    setLoading(true);
     createUserWithEmailAndPassword(auth, email, password)
       .then(async (userCredential) => {
         const user = userCredential.user;
-        console.log(user);
         try {
-          const docRef = await setDoc(doc(db, "users", user.uid), {
+          await setDoc(doc(db, "users", user.uid), {
             preferences: selectedAllergies,
+            favoriteRecipes: [],
           });
+          setLoading(false);
           navigate("/home");
         } catch (error) {
           handlePopupMessage("Error:", error.message);
@@ -63,6 +61,7 @@ function Register() {
         }
         console.error(error);
       });
+    setShowModal(false);
   };
 
   return (
@@ -102,7 +101,7 @@ function Register() {
           Create Account
         </button>
         <div style={{ padding: "25px", fontSize: "20px" }}>
-          Already have an account?{" "}
+          Already have an account?
           <a
             href="/login"
             style={{
@@ -115,9 +114,9 @@ function Register() {
             Log In
           </a>
         </div>
-        {/* {loading && <Spinner />} */}
+        {loading && <Spinner />}
         {showModal && (
-          <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-overlay">
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h2>Select Preferences</h2>
               <div className="allergy-options">
@@ -125,7 +124,7 @@ function Register() {
                   <label key={allergy}>
                     <input
                       type="checkbox"
-                      //checked={selectedAllergies.includes(allergy)}
+                      checked={selectedAllergies.includes(allergy)}
                       onChange={() => handleCheckboxChange(allergy)}
                     />
                     {allergy}
@@ -134,6 +133,12 @@ function Register() {
               </div>
               <button className="close-button" onClick={() => signUp()}>
                 Ready!
+              </button>
+              <button
+                className="close-button"
+                onClick={() => setShowModal(false)}
+              >
+                Close
               </button>
             </div>
           </div>

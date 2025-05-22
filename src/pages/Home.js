@@ -2,8 +2,15 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
-import { db } from "../firebase.config";
-import { collection, addDoc, doc, deleteDoc } from "firebase/firestore";
+import { db, auth } from "../firebase.config";
+import {
+  collection,
+  addDoc,
+  doc,
+  deleteDoc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
 
 const genAI = new GoogleGenerativeAI("AIzaSyCw-sWxsHWzTrKysOqDHlQQF8NhF0vtHoo");
 const UNSPLASH_ACCESS_KEY = "saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI";
@@ -34,10 +41,10 @@ function Home() {
     false,
   ]);
   const [showModal, setShowModal] = useState(false);
-  const [selectedAllergies, setSelectedAllergies] = useState(() => {
-    // Load saved allergies from localStorage (if available)
-    return JSON.parse(localStorage.getItem("allergies")) || [];
-  });
+  const [selectedAllergies, setSelectedAllergies] = useState([]);
+  const [temporarySelectedAllergies, setTemporarySelectedAllergies] = useState(
+    []
+  );
   const navigate = useNavigate();
   const allergies = ["Vegetarian", "Vegan", "Gluten", "Dairy", "Diabetic"];
 
@@ -50,6 +57,31 @@ function Home() {
     if (storedFavoriteButtons) {
       setFavoriteButtons(JSON.parse(storedFavoriteButtons));
     }
+    const fetchPreferences = async () => {
+      try {
+        const userRef = doc(db, "users", auth.currentUser.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const data = userSnap.data(); // Get the document fields
+          setSelectedAllergies(data.preferences);
+          setTemporarySelectedAllergies(data.preferences);
+          //return data;
+        } else {
+          console.log("No such user!");
+          //return null;
+        }
+      } catch (error) {
+        console.error("Error fetching recipes:", error);
+      }
+    };
+    setLoading(true);
+    fetchPreferences();
+    //.then((recipes) => {
+    //setFavoriteRecipes(recipes);
+    //setDisplayedRecipes(recipes);
+    //setLoading(false);
+    //});
   }, []);
 
   const run = async (userInput) => {
@@ -215,16 +247,31 @@ function Home() {
   };
 
   const handleCheckboxChange = (allergy) => {
-    setSelectedAllergies((prev) => {
+    setTemporarySelectedAllergies((prev) => {
       const updatedAllergies = prev.includes(allergy)
         ? prev.filter((item) => item !== allergy) // Remove if already selected
         : [...prev, allergy]; // Add if not selected
 
-      // Save to localStorage
-      localStorage.setItem("allergies", JSON.stringify(updatedAllergies));
-
       return updatedAllergies;
     });
+  };
+
+  const updatePreferences = async () => {
+    try {
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      await updateDoc(userRef, {
+        preferences: temporarySelectedAllergies,
+      });
+    } catch (error) {
+      console.error("Error fetching recipes:", error);
+    }
+    setSelectedAllergies(temporarySelectedAllergies);
+    setShowModal(false);
+  };
+
+  const closeModal = () => {
+    setTemporarySelectedAllergies(selectedAllergies);
+    setShowModal(false);
   };
 
   return (
@@ -251,7 +298,7 @@ function Home() {
           </button>
         </div>
         {showModal && (
-          <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-overlay">
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h2>Select Preferences</h2>
               <div className="allergy-options">
@@ -259,7 +306,7 @@ function Home() {
                   <label key={allergy}>
                     <input
                       type="checkbox"
-                      checked={selectedAllergies.includes(allergy)}
+                      checked={temporarySelectedAllergies.includes(allergy)}
                       onChange={() => handleCheckboxChange(allergy)}
                     />
                     {allergy}
@@ -268,8 +315,11 @@ function Home() {
               </div>
               <button
                 className="close-button"
-                onClick={() => setShowModal(false)}
+                onClick={() => updatePreferences()}
               >
+                Update
+              </button>
+              <button className="close-button" onClick={() => closeModal()}>
                 Close
               </button>
             </div>
