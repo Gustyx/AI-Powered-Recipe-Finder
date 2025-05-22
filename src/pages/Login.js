@@ -9,8 +9,9 @@ import Spinner from "../components/Spinner";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
+  const navigate = useNavigate();
 
   const handlePopupMessage = (message) => {
     setPopupMessage(message);
@@ -22,9 +23,10 @@ function Login() {
   };
 
   const signIn = () => {
+    setLoading(true);
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        const user = userCredential.user;
+        setLoading(false);
         navigate("/home");
       })
       .catch((error) => {
@@ -83,7 +85,7 @@ function Login() {
             Register here
           </a>
         </div>
-        {/* {loading && <Spinner />} */}
+        {loading && <Spinner />}
       </div>
       {popupMessage && (
         <div

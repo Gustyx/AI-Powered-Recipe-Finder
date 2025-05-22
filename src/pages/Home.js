@@ -10,6 +10,7 @@ import {
   deleteDoc,
   getDoc,
   updateDoc,
+  setDoc,
 } from "firebase/firestore";
 
 const genAI = new GoogleGenerativeAI("AIzaSyCw-sWxsHWzTrKysOqDHlQQF8NhF0vtHoo");
@@ -41,6 +42,7 @@ function Home() {
     false,
   ]);
   const [showModal, setShowModal] = useState(false);
+  const [favoriteRecipes, setFavoriteRecipes] = useState([]);
   const [selectedAllergies, setSelectedAllergies] = useState([]);
   const [temporarySelectedAllergies, setTemporarySelectedAllergies] = useState(
     []
@@ -66,6 +68,7 @@ function Home() {
           const data = userSnap.data(); // Get the document fields
           setSelectedAllergies(data.preferences);
           setTemporarySelectedAllergies(data.preferences);
+          setFavoriteRecipes(data.favoriteRecipes);
           //return data;
         } else {
           console.log("No such user!");
@@ -75,7 +78,7 @@ function Home() {
         console.error("Error fetching recipes:", error);
       }
     };
-    setLoading(true);
+    //setLoading(true);
     fetchPreferences();
     //.then((recipes) => {
     //setFavoriteRecipes(recipes);
@@ -170,8 +173,10 @@ function Home() {
 
   const handleFavoriteButton = async (recipe, index) => {
     const newFavoriteButtons = [...favoriteButtons];
+    console.log(1);
 
     if (newFavoriteButtons[index] === null) {
+      console.log(2);
       newFavoriteButtons[index] = await addToFavorites(recipe);
     } else {
       await removeFromFavorites(newFavoriteButtons[index]);
@@ -184,13 +189,20 @@ function Home() {
 
   const addToFavorites = async (recipe) => {
     try {
-      const docRef = await addDoc(collection(db, "favoriteRecipes"), {
+      /*const docRef = await addDoc(collection(db, "favoriteRecipes"), {
         ...recipe,
       });
 
       console.log(`Recipe has been added successfully.`);
 
-      return docRef.id;
+      return docRef.id;*/
+      setFavoriteRecipes([...favoriteRecipes, recipe]);
+      console.log(3);
+      console.log(recipe);
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        preferences: selectedAllergies,
+        favoriteRecipes: [...favoriteRecipes, recipe],
+      });
     } catch (error) {
       console.error("Error deleting recipe:", error);
     }
