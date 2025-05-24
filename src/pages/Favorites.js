@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  collection,
-  getDocs,
-  doc,
-  deleteDoc,
-  getDoc,
-} from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db, auth } from "../firebase.config";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
@@ -13,47 +7,33 @@ import Spinner from "../components/Spinner";
 function Favorites() {
   const [favoriteRecipes, setFavoriteRecipes] = useState([]);
   const [displayedRecipes, setDisplayedRecipes] = useState([]);
+  const [selectedAllergies, setSelectedAllergies] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchFavoriteRecipes = async () => {
-      //const recipesCollection = collection(db, "favoriteRecipes");
-      /*try {
-        const snapshot = await getDocs(recipesCollection);
-
-        const recipes = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        return recipes;
-      } catch (error) {
-        console.error("Error fetching recipes:", error);
-      }*/
       try {
         const userRef = doc(db, "users", auth.currentUser.uid);
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
-          const data = userSnap.data(); // Get the document fields
-          //setSelectedAllergies(data.preferences);
-          //setTemporarySelectedAllergies(data.preferences);
-          return data.favoriteRecipes;
-          //return data;
+          const data = userSnap.data();
+          setSelectedAllergies(data.preferences);
+          setFavoriteRecipes(data.favoriteRecipes);
+          setDisplayedRecipes(data.favoriteRecipes);
         } else {
           console.log("No such user!");
-          //return null;
         }
       } catch (error) {
         console.error("Error fetching recipes:", error);
       }
     };
     setLoading(true);
-    fetchFavoriteRecipes().then((recipes) => {
-      setFavoriteRecipes(recipes);
-      setDisplayedRecipes(recipes);
+    fetchFavoriteRecipes().then(() => {
+      //setFavoriteRecipes(recipes);
+      //setDisplayedRecipes(recipes);
       setLoading(false);
     });
   }, []);
@@ -65,26 +45,23 @@ function Favorites() {
     setDisplayedRecipes(filteredRecipes);
   }, [inputValue]);
 
-  const searchFavoriteRecipes = () => {
-    const filteredRecipes = favoriteRecipes.filter((recipe) => {
-      return recipe.title.toLowerCase().includes(inputValue.toLowerCase());
-    });
-    setDisplayedRecipes(filteredRecipes);
-  };
-
-  const removeFromFavorites = async (recipeId) => {
+  const removeFromFavorites = async (recipeToRemove) => {
     try {
-      const recipeDocRef = doc(db, "favoriteRecipes", recipeId);
-      await deleteDoc(recipeDocRef);
-
-      setFavoriteRecipes((prevRecipes) =>
-        prevRecipes.filter((recipe) => recipe.id !== recipeId)
+      const updatedFavorites = favoriteRecipes.filter(
+        (r) =>
+          r.title !== recipeToRemove.title &&
+          r.time !== recipeToRemove.time &&
+          r.instructions !== recipeToRemove.instructions &&
+          r.ingredients !== recipeToRemove.ingredients &&
+          r.imageUrl !== recipeToRemove.imageUrl
       );
-      setDisplayedRecipes((prevRecipes) =>
-        prevRecipes.filter((recipe) => recipe.id !== recipeId)
-      );
-
-      console.log(`Recipe with ID ${recipeId} has been deleted successfully.`);
+      setFavoriteRecipes(updatedFavorites);
+      setDisplayedRecipes(updatedFavorites);
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        preferences: selectedAllergies,
+        favoriteRecipes: updatedFavorites,
+      });
+      console.log(`Recipe has been deleted successfully.`);
     } catch (error) {
       console.error("Error deleting recipe:", error);
     }
@@ -97,20 +74,13 @@ function Favorites() {
           <input
             type="text"
             autoCapitalize="sentences"
-            placeholder="What do you feel like eating?"
+            placeholder="Search your recipes"
             value={inputValue}
             onChange={(e) => {
               setInputValue(e.target.value);
             }}
           />
-          <button
-            class="search-button"
-            onClick={() => {
-              searchFavoriteRecipes();
-            }}
-          >
-            &#128269;
-          </button>
+          <button class="search-button">&#128269;</button>
         </div>
         <button
           class="custom-button"
@@ -150,7 +120,7 @@ function Favorites() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          removeFromFavorites(recipe.id);
+                          removeFromFavorites(recipe);
                         }}
                       >
                         &#9829;
