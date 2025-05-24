@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
 import { db, auth } from "../firebase.config";
 import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
+import { allergies } from "../constants";
 
 const genAI = new GoogleGenerativeAI("AIzaSyCw-sWxsHWzTrKysOqDHlQQF8NhF0vtHoo");
 const UNSPLASH_ACCESS_KEY = "saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI";
@@ -19,20 +20,8 @@ function Home() {
   const [fiveRecipes, setFiveRecipes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [caughtError, setCaughtError] = useState(false);
-  const [favoriteButtons, setFavoriteButtons] = useState([
-    null,
-    null,
-    null,
-    null,
-    null,
-  ]);
-  const [hoveredButtons, setHoveredButtons] = useState([
-    false,
-    false,
-    false,
-    false,
-    false,
-  ]);
+  const [favoriteButtons, setFavoriteButtons] = useState([null * 5]);
+  const [hoveredButtons, setHoveredButtons] = useState([false * 5]);
   const [showModal, setShowModal] = useState(false);
   const [favoriteRecipes, setFavoriteRecipes] = useState([]);
   const [selectedAllergies, setSelectedAllergies] = useState([]);
@@ -40,7 +29,6 @@ function Home() {
     []
   );
   const navigate = useNavigate();
-  const allergies = ["Vegetarian", "Vegan", "Gluten", "Dairy", "Diabetic"];
 
   useEffect(() => {
     const storedRecipes = localStorage.getItem("fiveRecipes");
@@ -304,7 +292,7 @@ function Home() {
         {showModal && (
           <div className="modal-overlay">
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h2>Select Preferences</h2>
+              <h2>What do I eat?</h2>
               <div className="allergy-options">
                 {allergies.map((allergy) => (
                   <label key={allergy}>

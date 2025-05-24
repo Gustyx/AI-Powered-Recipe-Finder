@@ -4,6 +4,7 @@ import Spinner from "../components/Spinner";
 import { auth, db } from "../firebase.config";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { allergies } from "../constants";
 
 function Register() {
   const [email, setEmail] = useState("");
@@ -13,7 +14,6 @@ function Register() {
   const [loading, setLoading] = useState(false);
   const [selectedAllergies, setSelectedAllergies] = useState([]);
   const navigate = useNavigate();
-  const allergies = ["Vegetarian", "Vegan", "Gluten", "Dairy", "Diabetic"];
 
   const handleCheckboxChange = (allergy) => {
     setSelectedAllergies((prev) => {
