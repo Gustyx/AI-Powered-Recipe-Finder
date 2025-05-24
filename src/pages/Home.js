@@ -3,15 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
 import { db, auth } from "../firebase.config";
-import {
-  collection,
-  addDoc,
-  doc,
-  deleteDoc,
-  getDoc,
-  updateDoc,
-  setDoc,
-} from "firebase/firestore";
+import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 
 const genAI = new GoogleGenerativeAI("AIzaSyCw-sWxsHWzTrKysOqDHlQQF8NhF0vtHoo");
 const UNSPLASH_ACCESS_KEY = "saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI";
@@ -173,13 +165,12 @@ function Home() {
 
   const handleFavoriteButton = async (recipe, index) => {
     const newFavoriteButtons = [...favoriteButtons];
-    console.log(1);
 
     if (newFavoriteButtons[index] === null) {
-      console.log(2);
-      newFavoriteButtons[index] = await addToFavorites(recipe);
+      await addToFavorites(recipe);
+      newFavoriteButtons[index] = index;
     } else {
-      await removeFromFavorites(newFavoriteButtons[index]);
+      await removeFromFavorites(recipe);
       newFavoriteButtons[index] = null;
     }
 
@@ -189,16 +180,7 @@ function Home() {
 
   const addToFavorites = async (recipe) => {
     try {
-      /*const docRef = await addDoc(collection(db, "favoriteRecipes"), {
-        ...recipe,
-      });
-
-      console.log(`Recipe has been added successfully.`);
-
-      return docRef.id;*/
       setFavoriteRecipes([...favoriteRecipes, recipe]);
-      console.log(3);
-      console.log(recipe);
       await setDoc(doc(db, "users", auth.currentUser.uid), {
         preferences: selectedAllergies,
         favoriteRecipes: [...favoriteRecipes, recipe],
@@ -208,12 +190,22 @@ function Home() {
     }
   };
 
-  const removeFromFavorites = async (recipeId) => {
+  const removeFromFavorites = async (recipeToRemove) => {
     try {
-      const recipeDocRef = doc(db, "favoriteRecipes", recipeId);
-      await deleteDoc(recipeDocRef);
-
-      console.log(`Recipe with ID ${recipeId} has been deleted successfully.`);
+      const updatedFavorites = favoriteRecipes.filter(
+        (r) =>
+          r.title !== recipeToRemove.title &&
+          r.time !== recipeToRemove.time &&
+          r.instructions !== recipeToRemove.instructions &&
+          r.ingredients !== recipeToRemove.ingredients &&
+          r.imageUrl !== recipeToRemove.imageUrl
+      );
+      setFavoriteRecipes(updatedFavorites);
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        preferences: selectedAllergies,
+        favoriteRecipes: updatedFavorites,
+      });
+      console.log(`Recipe has been deleted successfully.`);
     } catch (error) {
       console.error("Error deleting recipe:", error);
     }
