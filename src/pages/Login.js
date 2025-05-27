@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { auth } from "../firebase.config";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
-import { db } from "../firebase.config";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
 
@@ -25,7 +23,7 @@ function Login() {
   const signIn = () => {
     setLoading(true);
     signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+      .then(() => {
         setLoading(false);
         navigate("/home");
       })

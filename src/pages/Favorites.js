@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { useState, useEffect, useRef } from "react";
+import Spinner from "../components/Spinner";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db, auth } from "../firebase.config";
 import { useNavigate } from "react-router-dom";
-import Spinner from "../components/Spinner";
 
 function Favorites() {
   const [favoriteRecipes, setFavoriteRecipes] = useState([]);
   const [displayedRecipes, setDisplayedRecipes] = useState([]);
-  const [selectedAllergies, setSelectedAllergies] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const selectedAllergies = useRef([]);
 
   useEffect(() => {
     const fetchFavoriteRecipes = async () => {
@@ -20,7 +20,7 @@ function Favorites() {
 
         if (userSnap.exists()) {
           const data = userSnap.data();
-          setSelectedAllergies(data.preferences);
+          selectedAllergies.current = data.preferences;
           setFavoriteRecipes(data.favoriteRecipes);
           setDisplayedRecipes(data.favoriteRecipes);
         } else {
@@ -32,8 +32,6 @@ function Favorites() {
     };
     setLoading(true);
     fetchFavoriteRecipes().then(() => {
-      //setFavoriteRecipes(recipes);
-      //setDisplayedRecipes(recipes);
       setLoading(false);
     });
   }, []);
@@ -43,7 +41,7 @@ function Favorites() {
       return recipe.title.toLowerCase().includes(inputValue.toLowerCase());
     });
     setDisplayedRecipes(filteredRecipes);
-  }, [inputValue]);
+  }, [inputValue, favoriteRecipes]);
 
   const removeFromFavorites = async (recipeToRemove) => {
     try {
@@ -58,7 +56,7 @@ function Favorites() {
       setFavoriteRecipes(updatedFavorites);
       setDisplayedRecipes(updatedFavorites);
       await setDoc(doc(db, "users", auth.currentUser.uid), {
-        preferences: selectedAllergies,
+        preferences: selectedAllergies.current,
         favoriteRecipes: updatedFavorites,
       });
       console.log(`Recipe has been deleted successfully.`);
@@ -91,49 +89,52 @@ function Favorites() {
           Find new Recipes
         </button>
         {loading && <Spinner />}
-        {favoriteRecipes.length !== 0 && (
-          <div class="suggestions-container">
-            <h2>Favorites</h2>
-            {displayedRecipes.length !== 0 ? (
-              displayedRecipes.map((recipe, index) => {
-                return (
-                  <div
-                    key={index}
-                    class="recipe-card"
-                    onClick={() => {
-                      navigate(`/recipeDetailsPage/${index}${recipe.title}`, {
-                        state: { element: recipe, favorite: true },
-                      });
-                    }}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <img
-                      class="recipe-small-image"
-                      src={recipe.imageUrl}
-                      alt={recipe.title}
-                    />
-                    <div class="recipe-details">
-                      <h3>{recipe.title}</h3>
-                      <p>{recipe.time}</p>
-                    </div>
-                    <div class="filled-recipe-favorite">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeFromFavorites(recipe);
-                        }}
-                      >
-                        &#9829;
-                      </button>
-                    </div>
+        <div class="suggestions-container">
+          <h2>Favorites</h2>
+          {displayedRecipes.length !== 0 ? (
+            displayedRecipes.map((recipe, index) => {
+              return (
+                <div
+                  key={index}
+                  class="recipe-card"
+                  onClick={() => {
+                    navigate(`/recipeDetailsPage/${index}${recipe.title}`, {
+                      state: {
+                        element: recipe,
+                        favorite: true,
+                        allRecipes: favoriteRecipes,
+                        allergies: selectedAllergies,
+                      },
+                    });
+                  }}
+                  style={{ cursor: "pointer" }}
+                >
+                  <img
+                    class="recipe-small-image"
+                    src={recipe.imageUrl}
+                    alt={recipe.title}
+                  />
+                  <div class="recipe-details">
+                    <h3>{recipe.title}</h3>
+                    <p>{recipe.time}</p>
                   </div>
-                );
-              })
-            ) : (
-              <p>No recipes to display.</p>
-            )}
-          </div>
-        )}
+                  <div class="filled-recipe-favorite">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFromFavorites(recipe);
+                      }}
+                    >
+                      &#9829;
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p>No recipes to display.</p>
+          )}
+        </div>
       </div>
     </div>
   );

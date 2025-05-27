@@ -45,26 +45,18 @@ function Home() {
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
-          const data = userSnap.data(); // Get the document fields
+          const data = userSnap.data();
           setSelectedAllergies(data.preferences);
           setTemporarySelectedAllergies(data.preferences);
           setFavoriteRecipes(data.favoriteRecipes);
-          //return data;
         } else {
           console.log("No such user!");
-          //return null;
         }
       } catch (error) {
         console.error("Error fetching recipes:", error);
       }
     };
-    //setLoading(true);
     fetchPreferences();
-    //.then((recipes) => {
-    //setFavoriteRecipes(recipes);
-    //setDisplayedRecipes(recipes);
-    //setLoading(false);
-    //});
   }, []);
 
   const run = async (userInput) => {
@@ -173,6 +165,7 @@ function Home() {
         preferences: selectedAllergies,
         favoriteRecipes: [...favoriteRecipes, recipe],
       });
+      console.log(`Recipe has been added successfully.`);
     } catch (error) {
       console.error("Error deleting recipe:", error);
     }
@@ -208,7 +201,7 @@ function Home() {
   const setFavoriteButtonColor = (index) => {
     const purple = "#65558F";
     const grey = "#999";
-    if (favoriteButtons[index]) {
+    if (favoriteButtons[index] !== null) {
       if (!hoveredButtons[index]) {
         return purple;
       }
@@ -355,7 +348,12 @@ function Home() {
                   class="recipe-card"
                   onClick={() => {
                     navigate(`/recipeDetailsPage/${index}${recipe.title}`, {
-                      state: { element: recipe, favorite: false },
+                      state: {
+                        element: recipe,
+                        favorite: favoriteButtons[index],
+                        allRecipes: favoriteRecipes,
+                        allergies: selectedAllergies,
+                      },
                     });
                   }}
                   style={{ cursor: "pointer" }}
