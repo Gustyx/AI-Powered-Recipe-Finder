@@ -6,7 +6,7 @@ import { db, auth } from "../firebase.config";
 import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 import { allergies } from "../constants";
 
-const genAI = new GoogleGenerativeAI("AIzaSyCw-sWxsHWzTrKysOqDHlQQF8NhF0vtHoo");
+const genAI = new GoogleGenerativeAI("AIzaSyAIg-h3YAR0NcQJT_Y0THY86-z1wEyxrj0");
 const UNSPLASH_ACCESS_KEY = "saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI";
 
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
