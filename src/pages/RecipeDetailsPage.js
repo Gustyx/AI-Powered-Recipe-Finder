@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { collection, addDoc, doc, deleteDoc } from "firebase/firestore";
-import { db } from "../firebase.config";
+import { doc, setDoc } from "firebase/firestore";
+import { db, auth } from "../firebase.config";
 
 export default function RecipeDetailsPage() {
   const location = useLocation();
@@ -10,26 +10,37 @@ export default function RecipeDetailsPage() {
   const [isFavorite, setIsFavorite] = useState(
     state ? state.favorite : undefined
   );
+  const favoriteRecipes = state ? state.allRecipes : undefined;
+  const selectedAllergies = state ? state.allergies : undefined;
   const [popupMessage, setPopupMessage] = useState("");
 
   const addToFavorites = async (recipe) => {
     try {
-      await addDoc(collection(db, "favoriteRecipes"), {
-        ...recipe,
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        preferences: selectedAllergies,
+        favoriteRecipes: [...favoriteRecipes, recipe],
       });
-
       console.log(`Recipe has been added successfully.`);
     } catch (error) {
-      console.error("Error deleting recipe:", error);
+      console.error("Error adding recipe:", error);
     }
   };
 
-  const removeFromFavorites = async (recipeId) => {
+  const removeFromFavorites = async (recipeToRemove) => {
     try {
-      const recipeDocRef = doc(db, "favoriteRecipes", recipeId);
-      await deleteDoc(recipeDocRef);
-
-      console.log(`Recipe with ID ${recipeId} has been deleted successfully.`);
+      const updatedFavorites = favoriteRecipes.filter(
+        (r) =>
+          r.title !== recipeToRemove.title &&
+          r.time !== recipeToRemove.time &&
+          r.instructions !== recipeToRemove.instructions &&
+          r.ingredients !== recipeToRemove.ingredients &&
+          r.imageUrl !== recipeToRemove.imageUrl
+      );
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        preferences: selectedAllergies,
+        favoriteRecipes: updatedFavorites,
+      });
+      console.log(`Recipe has been deleted successfully.`);
     } catch (error) {
       console.error("Error deleting recipe:", error);
     }
@@ -37,12 +48,12 @@ export default function RecipeDetailsPage() {
 
   const handeFavoriteButton = async () => {
     isFavorite
-      ? removeFromFavorites(recipeDetails.id)
+      ? removeFromFavorites(recipeDetails)
       : addToFavorites(recipeDetails);
     setIsFavorite(!isFavorite);
   };
 
-  const handleClick = (message) => {
+  const addToCart = (message) => {
     setPopupMessage(message);
 
     // Hide the popup after 2 seconds
@@ -84,7 +95,7 @@ export default function RecipeDetailsPage() {
                   JSON.stringify(recipeDetails.ingredients.split("- "))
                 );
                 setTimeout(() => setPopupMessage(""), 2000);
-                handleClick("Ingredients added to cart!");
+                addToCart("Ingredients added to cart!");
               }}
             >
               Add to cart

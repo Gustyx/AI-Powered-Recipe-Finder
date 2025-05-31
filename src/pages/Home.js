@@ -2,10 +2,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
-import { db } from "../firebase.config";
-import { collection, addDoc, doc, deleteDoc } from "firebase/firestore";
+import { db, auth } from "../firebase.config";
+import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
+import { allergies } from "../constants";
 
-const genAI = new GoogleGenerativeAI("AIzaSyCw-sWxsHWzTrKysOqDHlQQF8NhF0vtHoo");
+const genAI = new GoogleGenerativeAI("AIzaSyAIg-h3YAR0NcQJT_Y0THY86-z1wEyxrj0");
 const UNSPLASH_ACCESS_KEY = "saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI";
 
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -19,27 +20,15 @@ function Home() {
   const [fiveRecipes, setFiveRecipes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [caughtError, setCaughtError] = useState(false);
-  const [favoriteButtons, setFavoriteButtons] = useState([
-    null,
-    null,
-    null,
-    null,
-    null,
-  ]);
-  const [hoveredButtons, setHoveredButtons] = useState([
-    false,
-    false,
-    false,
-    false,
-    false,
-  ]);
+  const [favoriteButtons, setFavoriteButtons] = useState([null * 5]);
+  const [hoveredButtons, setHoveredButtons] = useState([false * 5]);
   const [showModal, setShowModal] = useState(false);
-  const [selectedAllergies, setSelectedAllergies] = useState(() => {
-    // Load saved allergies from localStorage (if available)
-    return JSON.parse(localStorage.getItem("allergies")) || [];
-  });
+  const [favoriteRecipes, setFavoriteRecipes] = useState([]);
+  const [selectedAllergies, setSelectedAllergies] = useState([]);
+  const [temporarySelectedAllergies, setTemporarySelectedAllergies] = useState(
+    []
+  );
   const navigate = useNavigate();
-  const allergies = ["Vegetarian", "Vegan", "Gluten", "Dairy", "Diabetic"];
 
   useEffect(() => {
     const storedRecipes = localStorage.getItem("fiveRecipes");
@@ -50,6 +39,24 @@ function Home() {
     if (storedFavoriteButtons) {
       setFavoriteButtons(JSON.parse(storedFavoriteButtons));
     }
+    const fetchPreferences = async () => {
+      try {
+        const userRef = doc(db, "users", auth.currentUser.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          setSelectedAllergies(data.preferences);
+          setTemporarySelectedAllergies(data.preferences);
+          setFavoriteRecipes(data.favoriteRecipes);
+        } else {
+          console.log("No such user!");
+        }
+      } catch (error) {
+        console.error("Error fetching recipes:", error);
+      }
+    };
+    fetchPreferences();
   }, []);
 
   const run = async (userInput) => {
@@ -140,9 +147,10 @@ function Home() {
     const newFavoriteButtons = [...favoriteButtons];
 
     if (newFavoriteButtons[index] === null) {
-      newFavoriteButtons[index] = await addToFavorites(recipe);
+      await addToFavorites(recipe);
+      newFavoriteButtons[index] = index;
     } else {
-      await removeFromFavorites(newFavoriteButtons[index]);
+      await removeFromFavorites(recipe);
       newFavoriteButtons[index] = null;
     }
 
@@ -152,24 +160,33 @@ function Home() {
 
   const addToFavorites = async (recipe) => {
     try {
-      const docRef = await addDoc(collection(db, "favoriteRecipes"), {
-        ...recipe,
+      setFavoriteRecipes([...favoriteRecipes, recipe]);
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        preferences: selectedAllergies,
+        favoriteRecipes: [...favoriteRecipes, recipe],
       });
-
       console.log(`Recipe has been added successfully.`);
-
-      return docRef.id;
     } catch (error) {
       console.error("Error deleting recipe:", error);
     }
   };
 
-  const removeFromFavorites = async (recipeId) => {
+  const removeFromFavorites = async (recipeToRemove) => {
     try {
-      const recipeDocRef = doc(db, "favoriteRecipes", recipeId);
-      await deleteDoc(recipeDocRef);
-
-      console.log(`Recipe with ID ${recipeId} has been deleted successfully.`);
+      const updatedFavorites = favoriteRecipes.filter(
+        (r) =>
+          r.title !== recipeToRemove.title &&
+          r.time !== recipeToRemove.time &&
+          r.instructions !== recipeToRemove.instructions &&
+          r.ingredients !== recipeToRemove.ingredients &&
+          r.imageUrl !== recipeToRemove.imageUrl
+      );
+      setFavoriteRecipes(updatedFavorites);
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        preferences: selectedAllergies,
+        favoriteRecipes: updatedFavorites,
+      });
+      console.log(`Recipe has been deleted successfully.`);
     } catch (error) {
       console.error("Error deleting recipe:", error);
     }
@@ -184,7 +201,7 @@ function Home() {
   const setFavoriteButtonColor = (index) => {
     const purple = "#65558F";
     const grey = "#999";
-    if (favoriteButtons[index]) {
+    if (favoriteButtons[index] !== null) {
       if (!hoveredButtons[index]) {
         return purple;
       }
@@ -215,16 +232,31 @@ function Home() {
   };
 
   const handleCheckboxChange = (allergy) => {
-    setSelectedAllergies((prev) => {
+    setTemporarySelectedAllergies((prev) => {
       const updatedAllergies = prev.includes(allergy)
         ? prev.filter((item) => item !== allergy) // Remove if already selected
         : [...prev, allergy]; // Add if not selected
 
-      // Save to localStorage
-      localStorage.setItem("allergies", JSON.stringify(updatedAllergies));
-
       return updatedAllergies;
     });
+  };
+
+  const updatePreferences = async () => {
+    try {
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      await updateDoc(userRef, {
+        preferences: temporarySelectedAllergies,
+      });
+    } catch (error) {
+      console.error("Error fetching recipes:", error);
+    }
+    setSelectedAllergies(temporarySelectedAllergies);
+    setShowModal(false);
+  };
+
+  const closeModal = () => {
+    setTemporarySelectedAllergies(selectedAllergies);
+    setShowModal(false);
   };
 
   return (
@@ -251,15 +283,15 @@ function Home() {
           </button>
         </div>
         {showModal && (
-          <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-overlay">
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h2>Select Preferences</h2>
+              <h2>What do I eat?</h2>
               <div className="allergy-options">
                 {allergies.map((allergy) => (
                   <label key={allergy}>
                     <input
                       type="checkbox"
-                      checked={selectedAllergies.includes(allergy)}
+                      checked={temporarySelectedAllergies.includes(allergy)}
                       onChange={() => handleCheckboxChange(allergy)}
                     />
                     {allergy}
@@ -268,8 +300,11 @@ function Home() {
               </div>
               <button
                 className="close-button"
-                onClick={() => setShowModal(false)}
+                onClick={() => updatePreferences()}
               >
+                Update
+              </button>
+              <button className="close-button" onClick={() => closeModal()}>
                 Close
               </button>
             </div>
@@ -313,7 +348,12 @@ function Home() {
                   class="recipe-card"
                   onClick={() => {
                     navigate(`/recipeDetailsPage/${index}${recipe.title}`, {
-                      state: { element: recipe, favorite: false },
+                      state: {
+                        element: recipe,
+                        favorite: favoriteButtons[index],
+                        allRecipes: favoriteRecipes,
+                        allergies: selectedAllergies,
+                      },
                     });
                   }}
                   style={{ cursor: "pointer" }}
