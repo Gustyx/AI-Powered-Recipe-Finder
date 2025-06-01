@@ -2,11 +2,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
-import { db, auth } from "../firebase.config";
-import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
-import { allergies } from "../constants";
+import { db } from "../firebase.config";
+import { collection, addDoc, doc, deleteDoc } from "firebase/firestore";
 
-const genAI = new GoogleGenerativeAI("AIzaSyAIg-h3YAR0NcQJT_Y0THY86-z1wEyxrj0");
+
+const genAI = new GoogleGenerativeAI("AIzaSyCw-sWxsHWzTrKysOqDHlQQF8NhF0vtHoo");
 const UNSPLASH_ACCESS_KEY = "saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI";
 
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -20,15 +20,28 @@ function Home() {
   const [fiveRecipes, setFiveRecipes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [caughtError, setCaughtError] = useState(false);
-  const [favoriteButtons, setFavoriteButtons] = useState([null * 5]);
-  const [hoveredButtons, setHoveredButtons] = useState([false * 5]);
+  const [favoriteButtons, setFavoriteButtons] = useState([
+    null,
+    null,
+    null,
+    null,
+    null,
+  ]);
+  const [hoveredButtons, setHoveredButtons] = useState([
+    false,
+    false,
+    false,
+    false,
+    false,
+  ]);
   const [showModal, setShowModal] = useState(false);
-  const [favoriteRecipes, setFavoriteRecipes] = useState([]);
-  const [selectedAllergies, setSelectedAllergies] = useState([]);
-  const [temporarySelectedAllergies, setTemporarySelectedAllergies] = useState(
-    []
-  );
+  const [selectedAllergies, setSelectedAllergies] = useState(() => {
+    // Load saved allergies from localStorage (if available)
+    return JSON.parse(localStorage.getItem("allergies")) || [];
+  });
   const navigate = useNavigate();
+  const allergies = ["Vegetarian", "Vegan", "Gluten", "Dairy", "Diabetic"];
+
 
   useEffect(() => {
     const storedRecipes = localStorage.getItem("fiveRecipes");
@@ -39,24 +52,7 @@ function Home() {
     if (storedFavoriteButtons) {
       setFavoriteButtons(JSON.parse(storedFavoriteButtons));
     }
-    const fetchPreferences = async () => {
-      try {
-        const userRef = doc(db, "users", auth.currentUser.uid);
-        const userSnap = await getDoc(userRef);
 
-        if (userSnap.exists()) {
-          const data = userSnap.data();
-          setSelectedAllergies(data.preferences);
-          setTemporarySelectedAllergies(data.preferences);
-          setFavoriteRecipes(data.favoriteRecipes);
-        } else {
-          console.log("No such user!");
-        }
-      } catch (error) {
-        console.error("Error fetching recipes:", error);
-      }
-    };
-    fetchPreferences();
   }, []);
 
   const run = async (userInput) => {
@@ -68,13 +64,19 @@ function Home() {
       JSON.stringify([null, null, null, null, null])
     );
 
+    const fileResponse = await fetch("/PricedProducts.txt");
+    const fileContent = await fileResponse.text();
+
+    
     const prompt =
       userInput === iDontLikeTheseButtonText
-        ? iDontLikeTheseButtonText
-        : "Hello! This is an AI powered App I created for a project that find recipies base on an input filter. Please give me exactly 5 recipes for " +
-          userInput +
-          ".Consider I am " +
-          selectedAllergies +
+      ? iDontLikeTheseButtonText
+      : "Hello! This is an AI-powered app I created for a project that finds recipes based on user preferences and available products. Please generate exactly 5 recipes for: " +
+         userInput +
+       ". I have the following allergies: " +
+        selectedAllergies +
+        ".\n\nYou are ONLY allowed to use the exact product names listed below as ingredients. If a recipe requires an ingredient that is NOT in the list, still include it, but clearly mark it with '(Not In Store)' at the beginning of the ingredient name.\n\nHere are the available products:\n" +
+        fileContent +
           ". Answer me exactly like this please:\n" +
           "-----Recipe-----\n" +
           "Title: {recipe title}\n" +
@@ -84,8 +86,8 @@ function Home() {
 
     try {
       setCaughtError(false);
+      console.log(fileContent)
       console.log(prompt);
-
       const result = await chat.sendMessage(prompt);
       const respose = await result.response;
       const text = respose.text().replace(/\*/g, "");
@@ -147,10 +149,9 @@ function Home() {
     const newFavoriteButtons = [...favoriteButtons];
 
     if (newFavoriteButtons[index] === null) {
-      await addToFavorites(recipe);
-      newFavoriteButtons[index] = index;
+      newFavoriteButtons[index] = await addToFavorites(recipe);
     } else {
-      await removeFromFavorites(recipe);
+      await removeFromFavorites(newFavoriteButtons[index]);
       newFavoriteButtons[index] = null;
     }
 
@@ -160,37 +161,29 @@ function Home() {
 
   const addToFavorites = async (recipe) => {
     try {
-      setFavoriteRecipes([...favoriteRecipes, recipe]);
-      await setDoc(doc(db, "users", auth.currentUser.uid), {
-        preferences: selectedAllergies,
-        favoriteRecipes: [...favoriteRecipes, recipe],
+      const docRef = await addDoc(collection(db, "favoriteRecipes"), {
+        ...recipe,
       });
+
       console.log(`Recipe has been added successfully.`);
+
+      return docRef.id;
     } catch (error) {
       console.error("Error deleting recipe:", error);
     }
   };
 
-  const removeFromFavorites = async (recipeToRemove) => {
+  const removeFromFavorites = async (recipeId) => {
     try {
-      const updatedFavorites = favoriteRecipes.filter(
-        (r) =>
-          r.title !== recipeToRemove.title &&
-          r.time !== recipeToRemove.time &&
-          r.instructions !== recipeToRemove.instructions &&
-          r.ingredients !== recipeToRemove.ingredients &&
-          r.imageUrl !== recipeToRemove.imageUrl
-      );
-      setFavoriteRecipes(updatedFavorites);
-      await setDoc(doc(db, "users", auth.currentUser.uid), {
-        preferences: selectedAllergies,
-        favoriteRecipes: updatedFavorites,
-      });
-      console.log(`Recipe has been deleted successfully.`);
+      const recipeDocRef = doc(db, "favoriteRecipes", recipeId);
+      await deleteDoc(recipeDocRef);
+
+      console.log(`Recipe with ID ${recipeId} has been deleted successfully.`);
     } catch (error) {
       console.error("Error deleting recipe:", error);
     }
   };
+  
 
   const handleMouseHover = (index) => {
     const newHoveredButtons = [...hoveredButtons];
@@ -201,7 +194,7 @@ function Home() {
   const setFavoriteButtonColor = (index) => {
     const purple = "#65558F";
     const grey = "#999";
-    if (favoriteButtons[index] !== null) {
+    if (favoriteButtons[index]) {
       if (!hoveredButtons[index]) {
         return purple;
       }
@@ -232,31 +225,16 @@ function Home() {
   };
 
   const handleCheckboxChange = (allergy) => {
-    setTemporarySelectedAllergies((prev) => {
+    setSelectedAllergies((prev) => {
       const updatedAllergies = prev.includes(allergy)
         ? prev.filter((item) => item !== allergy) // Remove if already selected
         : [...prev, allergy]; // Add if not selected
 
+      // Save to localStorage
+      localStorage.setItem("allergies", JSON.stringify(updatedAllergies));
+
       return updatedAllergies;
     });
-  };
-
-  const updatePreferences = async () => {
-    try {
-      const userRef = doc(db, "users", auth.currentUser.uid);
-      await updateDoc(userRef, {
-        preferences: temporarySelectedAllergies,
-      });
-    } catch (error) {
-      console.error("Error fetching recipes:", error);
-    }
-    setSelectedAllergies(temporarySelectedAllergies);
-    setShowModal(false);
-  };
-
-  const closeModal = () => {
-    setTemporarySelectedAllergies(selectedAllergies);
-    setShowModal(false);
   };
 
   return (
@@ -283,15 +261,15 @@ function Home() {
           </button>
         </div>
         {showModal && (
-          <div className="modal-overlay">
+          <div className="modal-overlay" onClick={() => setShowModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h2>What do I eat?</h2>
+              <h2>Select Preferences</h2>
               <div className="allergy-options">
                 {allergies.map((allergy) => (
                   <label key={allergy}>
                     <input
                       type="checkbox"
-                      checked={temporarySelectedAllergies.includes(allergy)}
+                      checked={selectedAllergies.includes(allergy)}
                       onChange={() => handleCheckboxChange(allergy)}
                     />
                     {allergy}
@@ -300,11 +278,8 @@ function Home() {
               </div>
               <button
                 className="close-button"
-                onClick={() => updatePreferences()}
+                onClick={() => setShowModal(false)}
               >
-                Update
-              </button>
-              <button className="close-button" onClick={() => closeModal()}>
                 Close
               </button>
             </div>
@@ -348,12 +323,7 @@ function Home() {
                   class="recipe-card"
                   onClick={() => {
                     navigate(`/recipeDetailsPage/${index}${recipe.title}`, {
-                      state: {
-                        element: recipe,
-                        favorite: favoriteButtons[index],
-                        allRecipes: favoriteRecipes,
-                        allergies: selectedAllergies,
-                      },
+                      state: { element: recipe, favorite: false },
                     });
                   }}
                   style={{ cursor: "pointer" }}
