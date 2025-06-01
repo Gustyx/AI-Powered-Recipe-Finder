@@ -8,7 +8,7 @@ export default function RecipeDetailsPage() {
   const { state } = location;
   const recipeDetails = state ? state.element : undefined;
   const [isFavorite, setIsFavorite] = useState(
-    state ? state.favorite : undefined
+    state ? (state.favorite === null ? false : true) : undefined
   );
   const favoriteRecipes = state ? state.allRecipes : undefined;
   const selectedAllergies = state ? state.allergies : undefined;
