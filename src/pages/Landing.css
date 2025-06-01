@@ -1,0 +1,192 @@
+.landing-container {
+  position: relative;
+  padding: 2rem;
+  min-height: 100vh;
+  color: white;
+  background-image: url('../../public/tfood.jpg'); /* image from public folder */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow-x: hidden;
+}
+
+.landing-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* semi-transparent black */
+  z-index: 1;
+}
+
+.landing-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Center the welcome text & button vertically and horizontally in viewport */
+.centered-content {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.ready-button {
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #0b621f;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.ready-button:hover {
+  background-color: #ff6347;
+}
+
+/* Questionnaire styles */
+.questionnaire {
+  position: relative;
+  z-index: 2;
+  margin: 4rem auto 2rem;
+  max-width: 600px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 2rem;
+  border-radius: 10px;
+  color: white;
+}
+
+.questionnaire h2 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.questionnaire form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.questionnaire label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+}
+
+.questionnaire input,
+.questionnaire select {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: none;
+}
+
+.ready-answer {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #0b621f;
+  text-shadow: 0 0 8px #0b621f;
+}
+.left-align-text {
+  text-align: left;
+}
+
+.question-row {
+  margin-bottom: 1.5rem;
+}
+
+.question-text {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.options-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.option-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.submit-button {
+  margin-top: 1rem;
+  padding: 0.75rem 2rem;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #0b621f;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #ff6347;
+}
+
+.loading-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffa500; /* orange */
+  text-align: center;
+  padding: 2rem 0;
+}
+.options-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;  /* <-- add this */
+}
+
+.app-title {
+  font-size: 4rem;
+  font-weight: 900;
+  color:  #0b621f; /* warm tomato color */
+  text-shadow: 0 0 10px rgba(67, 15, 3, 0.7);
+  margin-bottom: 0.5rem;
+}
+
+.slogan {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color:white;
+  text-align: center;
+  margin-bottom: 2rem;
+  line-height: 1.3;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+.ready-button {
+  padding: 1rem 2.5rem;
+  font-size: 1.3rem;
+  border-radius: 8px;
+  background-color: #0b621f;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.ready-button:hover {
+  background-color: #ff6347;
+  transform: scale(1.05);
+}
+

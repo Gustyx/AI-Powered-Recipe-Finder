@@ -5,6 +5,7 @@ import Spinner from "../components/Spinner";
 import { db, auth } from "../firebase.config";
 import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 import { allergies } from "../constants";
+import "./Home.css"; 
 
 const genAI = new GoogleGenerativeAI("AIzaSyAIg-h3YAR0NcQJT_Y0THY86-z1wEyxrj0");
 const UNSPLASH_ACCESS_KEY = "saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI";
@@ -267,6 +268,7 @@ function Home() {
 
   return (
     <div className="Home">
+       <div className="home-container">
       <div lang="en">
         <div
           style={{
@@ -407,6 +409,7 @@ function Home() {
         )}
       </div>
     </div>
+     </div>
   );
 }
 
