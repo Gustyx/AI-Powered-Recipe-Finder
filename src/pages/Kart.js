@@ -1,84 +1,98 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import './Kart.css';
 
 function Kart() {
-  const [ingredients, setSelectedIngredients] = useState(() => {
-    // Load saved allergies from localStorage (if available)
-    return JSON.parse(localStorage.getItem("ingredients")) || [];
+ const [ingredients, setSelectedIngredients] = useState(() => {
+  const saved = JSON.parse(localStorage.getItem("ingredients")) || [];
+  const filtered = saved
+    .map(item => (typeof item === "string" ? item.trim() : ""))
+    .filter(item => item !== "" && !item.startsWith("(Not In Store)"));
+  
+
+  return filtered;
+
   });
 
+  const [pricesMap, setPricesMap] = useState({});
   const [popupMessage, setPopupMessage] = useState("");
+
+  useEffect(() => {
+    async function loadProductPrices() {
+      const response = await fetch("/PricedProducts.txt");
+      const text = await response.text();
+      const lines = text.split("\n").filter(line => line.trim() !== "");
+      const map = {};
+      lines.forEach(line => {
+        const [namePart, pricePart] = line.split(" - ");
+        if (namePart && pricePart) {
+          const price = parseFloat(pricePart.replace(" RON", "").trim());
+          map[namePart.trim()] = price;
+        }
+      });
+      setPricesMap(map);
+    }
+
+    loadProductPrices();
+  }, []);
 
   const handleClick = (message) => {
     setPopupMessage(message);
-
-    // Hide the popup after 2 seconds
     setTimeout(() => {
       setPopupMessage("");
     }, 2000);
   };
 
+  const total = ingredients.reduce((sum, ingredient) => {
+    const price = pricesMap[ingredient];
+    return sum + (price || 0);
+  }, 0);
+
   return (
-    <div className="Kart">
-      <h2>Your Cart</h2>
+    <div className="kart-container">
+      <h2 className="kart-title">🛒 Your Food Cart</h2>
       {ingredients.length > 0 ? (
-        ingredients.map((ingredient) => (
-          <div
-            style={{ margin: "10px" }}
-            key={ingredient.id}
-            className="ingredient-card"
-          >
-            <h3>{ingredient}</h3>
-            {/* <p>Price: ${ingredient.price}</p> */}
+        ingredients.map((ingredient, index) => (
+          <div className="recipe-card" key={index}>
+            <div className="card-text">
+              <h4>{ingredient}</h4>
+              <span>
+                {pricesMap[ingredient]
+                  ? `${pricesMap[ingredient].toFixed(2)} RON`
+                  : "Price not found"}
+              </span>
+            </div>
+            <div className="card-image">
+              
+            </div>
           </div>
         ))
       ) : (
-        <p style={{ margin: "25px" }}>No ingredients in the cart.</p>
+        <p className="empty-cart">No ingredients in the cart.</p>
       )}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "25px",
-          marginBottom: "10px",
-        }}
-      >
-        <button
-          class="custom-button"
-          onClick={() => {
-            setTimeout(() => setPopupMessage(""), 2000);
-            handleClick("Order placed!");
-          }}
-        >
-          Buy
+
+      {ingredients.length > 0 && (
+        <div className="total-container">
+          <h3>Total: {total.toFixed(2)} RON</h3>
+        </div>
+      )}
+
+      <div className="button-container">
+        <button className="buy-button" onClick={() => handleClick("Order placed!")}>
+          ✅ Buy
         </button>
         <button
-          class="custom-button"
+          className="clear-button"
           onClick={() => {
             localStorage.setItem("ingredients", JSON.stringify(""));
+            
             setSelectedIngredients([]);
           }}
         >
-          Emtpy cart
+          🗑️ Empty cart
         </button>
       </div>
-      {popupMessage && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "#333",
-            color: "#fff",
-            padding: "10px 15px",
-            borderRadius: "5px",
-            fontSize: "14px",
-            opacity: "0.9",
-          }}
-        >
-          {popupMessage}
-        </div>
-      )}
+
+      {popupMessage && <div className="popup">{popupMessage}</div>}
     </div>
   );
 }

@@ -1,23 +1,20 @@
 import { useState } from "react";
-import { auth } from "../firebase.config";
-import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
+import { auth } from "../firebase.config";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import "./Login.css"; // 🔹 Separated styles
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handlePopupMessage = (message) => {
     setPopupMessage(message);
-
-    // Hide the popup after 2 seconds
-    setTimeout(() => {
-      setPopupMessage("");
-    }, 2000);
+    setTimeout(() => setPopupMessage(""), 2000);
   };
 
   const signIn = () => {
@@ -30,76 +27,55 @@ function Login() {
       .catch((error) => {
         if (error.code === "auth/invalid-credential") {
           handlePopupMessage("Login credentials are invalid!");
-        }
-        if (error.code === "auth/invalid-email") {
+        } else if (error.code === "auth/invalid-email") {
           handlePopupMessage("That email address is invalid!");
+        } else {
+          handlePopupMessage("Something went wrong!");
         }
-        console.error(error);
+        setLoading(false);
       });
   };
 
   return (
-    <div className="Login">
-      <div lang="en">
-        <h1 style={{ padding: "25px", color: "#65558F", fontSize: "69px" }}>
-          Login
-        </h1>
-        <div class="search-container">
+    <div className="login-container">
+      <div className="login-overlay"></div>
+
+      <div className="login-content">
+        <h1>Login</h1>
+
+        <div className="search-container">
           <input
             type="text"
-            autoCapitalize="sentences"
             placeholder="Email"
             value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-            }}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
-        <div class="search-container">
+        <div className="search-container">
           <input
-            type="text"
-            autoCapitalize="sentences"
+            type="password"
             placeholder="Password"
             value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-            }}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <button class="custom-button" onClick={signIn}>
-          Log in
+
+        <button className="custom-button" onClick={signIn}>
+          Log In
         </button>
-        <div style={{ padding: "25px", fontSize: "20px" }}>
-          Don't have an account?{" "}
-          <a
-            href="/register"
-            style={{
-              color: "#65558F",
-              cursor: "pointer",
-              fontWeight: "bold",
-              textDecoration: "none",
-            }}
-          >
+
+        <div className="login-footer">
+          Don’t have an account?{" "}
+          <a href="/register" className="login-link">
             Register here
           </a>
         </div>
+
         {loading && <Spinner />}
       </div>
+
       {popupMessage && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "#333",
-            color: "#fff",
-            padding: "10px 15px",
-            borderRadius: "5px",
-            fontSize: "14px",
-            opacity: "0.9",
-          }}
-        >
+        <div className="popup-message">
           {popupMessage}
         </div>
       )}

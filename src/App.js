@@ -7,6 +7,7 @@ import Favorites from "./pages/Favorites";
 import Kart from "./pages/Kart";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import Landing from "./pages/Landing";
 
 function App() {
   useEffect(() => {
@@ -24,7 +25,7 @@ function App() {
   return (
     <div className="App">
       <Routes>
-        <Route path="/" element={<Navigate to="/register" />} />
+        <Route path="/" element={<Navigate to="/landing" />} />
         <Route path="home" element={<Home />} />
         <Route
           path="recipeDetailsPage/:title"
@@ -34,6 +35,7 @@ function App() {
         <Route path="kart" element={<Kart />} />
         <Route path="register" element={<Register />} />
         <Route path="login" element={<Login />} />
+         <Route path="landing" element={<Landing />} />
       </Routes>
     </div>
   );

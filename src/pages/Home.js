@@ -5,6 +5,7 @@ import Spinner from "../components/Spinner";
 import { db, auth } from "../firebase.config";
 import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 import { allergies } from "../constants";
+import "./Home.css";
 
 const genAI = new GoogleGenerativeAI("AIzaSyAIg-h3YAR0NcQJT_Y0THY86-z1wEyxrj0");
 const UNSPLASH_ACCESS_KEY = "saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI";
@@ -68,13 +69,18 @@ function Home() {
       JSON.stringify([null, null, null, null, null])
     );
 
+    const fileResponse = await fetch("/PricedProducts.txt");
+    const fileContent = await fileResponse.text();
+
     const prompt =
       userInput === iDontLikeTheseButtonText
         ? iDontLikeTheseButtonText
-        : "Hello! This is an AI powered App I created for a project that find recipies base on an input filter. Please give me exactly 5 recipes for " +
+        : "Hello! This is an AI-powered app I created for a project that finds recipes based on user preferences and available products. Please generate exactly 5 recipes for: " +
           userInput +
-          ".Consider I am " +
+          ". I have the following allergies: " +
           selectedAllergies +
+          ".\n\nYou are ONLY allowed to use the exact product names listed below as ingredients. If a recipe requires an ingredient that is NOT in the list, still include it, but clearly mark it with '(Not In Store)' at the beginning of the ingredient name.\n\nHere are the available products:\n" +
+          fileContent +
           ". Answer me exactly like this please:\n" +
           "-----Recipe-----\n" +
           "Title: {recipe title}\n" +
@@ -199,7 +205,7 @@ function Home() {
   };
 
   const setFavoriteButtonColor = (index) => {
-    const purple = "#65558F";
+    const purple = "#be1b13";
     const grey = "#999";
     if (favoriteButtons[index] !== null) {
       if (!hoveredButtons[index]) {
@@ -261,144 +267,159 @@ function Home() {
 
   return (
     <div className="Home">
-      <div lang="en">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "25px",
-            marginBottom: "10px",
-          }}
-        >
-          <button class="custom-button" onClick={() => setShowModal(true)}>
-            Allergy
-          </button>
+      <div className="home-container">
+        <div lang="en">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "25px",
+              marginBottom: "10px",
+            }}
+          >
+            <button class="custom-button" onClick={() => setShowModal(true)}>
+              Allergy
+            </button>
+            <button className="cart-button" onClick={() => navigate("/kart")}>
+              {/* Simple cart SVG icon */}
+              <svg className="cart-icon" viewBox="0 0 24 24">
+                <path
+                  d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 
+          0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 
+          2-2-.9-2-2-2zM7.16 14.26l.03.01 11.45-.01a1 
+          1 0 00.98-.8l1.38-6.16A.998.998 0 0019.07 
+          6H6.21l-.94-2H1v2h2l3.6 
+          7.59-1.35 2.44C4.52 16.37 5.48 
+          18 7 18h12v-2H7l1.16-1.74z"
+                />
+              </svg>
+            </button>
+          </div>
+          {showModal && (
+            <div className="modal-overlay">
+              <div
+                className="modal-content"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  className="modal-close-x"
+                  onClick={() => closeModal()}
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+                <h2>What do I eat?</h2>
+                <div className="allergy-options">
+                  {allergies.map((allergy) => (
+                    <label key={allergy}>
+                      <input
+                        type="checkbox"
+                        checked={temporarySelectedAllergies.includes(allergy)}
+                        onChange={() => handleCheckboxChange(allergy)}
+                      />
+                      {allergy}
+                    </label>
+                  ))}
+                </div>
+                <button
+                  className="close-button"
+                  onClick={() => updatePreferences()}
+                >
+                  Update
+                </button>
+              </div>
+            </div>
+          )}
+          <div class="search-container">
+            <input
+              type="text"
+              autoCapitalize="sentences"
+              placeholder="What do you feel like eating?"
+              value={inputValue}
+              onChange={(e) => {
+                setInputValue(e.target.value);
+              }}
+            />
+            <button
+              className="search-button"
+              onClick={() => {
+                run(inputValue);
+              }}
+            >
+              &#128269;
+            </button>
+          </div>
           <button
             class="custom-button"
             onClick={() => {
-              navigate(`/kart`);
+              navigate(`/favorites`);
             }}
           >
-            Kart
+            Favorite Recipes
           </button>
-        </div>
-        {showModal && (
-          <div className="modal-overlay">
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h2>What do I eat?</h2>
-              <div className="allergy-options">
-                {allergies.map((allergy) => (
-                  <label key={allergy}>
-                    <input
-                      type="checkbox"
-                      checked={temporarySelectedAllergies.includes(allergy)}
-                      onChange={() => handleCheckboxChange(allergy)}
+          {loading && <Spinner />}
+          {fiveRecipes.length !== 0 ? (
+            <div class="suggestions-container">
+              <h2>Suggested recipes</h2>
+              {fiveRecipes.map((recipe, index) => {
+                return (
+                  <div
+                    key={index}
+                    class="recipe-card"
+                    onClick={() => {
+                      navigate(`/recipeDetailsPage/${index}${recipe.title}`, {
+                        state: {
+                          element: recipe,
+                          favorite: favoriteButtons[index],
+                          allRecipes: favoriteRecipes,
+                          allergies: selectedAllergies,
+                        },
+                      });
+                    }}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <img
+                      class="recipe-small-image"
+                      src={recipe.imageUrl}
+                      alt={recipe.title}
                     />
-                    {allergy}
-                  </label>
-                ))}
-              </div>
+                    <div class="recipe-details">
+                      <h3>{recipe.title}</h3>
+                      <p>{recipe.time}</p>
+                    </div>
+                    <div class="recipe-favorite">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFavoriteButton(recipe, index);
+                        }}
+                        onMouseEnter={() => handleMouseHover(index)}
+                        onMouseLeave={() => handleMouseHover(index)}
+                        style={{ color: setFavoriteButtonColor(index) }}
+                      >
+                        &#9829;
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
               <button
-                className="close-button"
-                onClick={() => updatePreferences()}
+                class="custom-button"
+                onClick={() => {
+                  run(iDontLikeTheseButtonText);
+                }}
               >
-                Update
-              </button>
-              <button className="close-button" onClick={() => closeModal()}>
-                Close
+                I don't like these
               </button>
             </div>
-          </div>
-        )}
-        <div class="search-container">
-          <input
-            type="text"
-            autoCapitalize="sentences"
-            placeholder="What do you feel like eating?"
-            value={inputValue}
-            onChange={(e) => {
-              setInputValue(e.target.value);
-            }}
-          />
-          <button
-            className="search-button"
-            onClick={() => {
-              run(inputValue);
-            }}
-          >
-            &#128269;
-          </button>
+          ) : (
+            caughtError && (
+              <p className="suggestions-container">
+                There was an Error fetching the recipes. Please try again.
+              </p>
+            )
+          )}
         </div>
-        <button
-          class="custom-button"
-          onClick={() => {
-            navigate(`/favorites`);
-          }}
-        >
-          Favorite Recipes
-        </button>
-        {loading && <Spinner />}
-        {fiveRecipes.length !== 0 ? (
-          <div class="suggestions-container">
-            <h2>Suggested recipes</h2>
-            {fiveRecipes.map((recipe, index) => {
-              return (
-                <div
-                  key={index}
-                  class="recipe-card"
-                  onClick={() => {
-                    navigate(`/recipeDetailsPage/${index}${recipe.title}`, {
-                      state: {
-                        element: recipe,
-                        favorite: favoriteButtons[index],
-                        allRecipes: favoriteRecipes,
-                        allergies: selectedAllergies,
-                      },
-                    });
-                  }}
-                  style={{ cursor: "pointer" }}
-                >
-                  <img
-                    class="recipe-small-image"
-                    src={recipe.imageUrl}
-                    alt={recipe.title}
-                  />
-                  <div class="recipe-details">
-                    <h3>{recipe.title}</h3>
-                    <p>{recipe.time}</p>
-                  </div>
-                  <div class="recipe-favorite">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFavoriteButton(recipe, index);
-                      }}
-                      onMouseEnter={() => handleMouseHover(index)}
-                      onMouseLeave={() => handleMouseHover(index)}
-                      style={{ color: setFavoriteButtonColor(index) }}
-                    >
-                      &#9829;
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-            <button
-              class="custom-button"
-              onClick={() => {
-                run(iDontLikeTheseButtonText);
-              }}
-            >
-              I don't like these
-            </button>
-          </div>
-        ) : (
-          caughtError && (
-            <p className="suggestions-container">
-              There was an Error fetching the recipes. Please try again.
-            </p>
-          )
-        )}
       </div>
     </div>
   );
