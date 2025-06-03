@@ -54,6 +54,7 @@ export default function RecipeDetailsPage() {
   };
 
   const addToCart = (message) => {
+    
     setPopupMessage(message);
 
     // Hide the popup after 2 seconds

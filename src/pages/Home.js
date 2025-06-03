@@ -10,6 +10,7 @@ import "./Home.css";
 const genAI = new GoogleGenerativeAI("AIzaSyAIg-h3YAR0NcQJT_Y0THY86-z1wEyxrj0");
 const UNSPLASH_ACCESS_KEY = "saXXIrOb2Em6PXItq2qhOdq7ckYu9B-UEhdRNCM12bI";
 
+
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 const chat = model.startChat({
   history: [],
@@ -206,7 +207,7 @@ function Home() {
   };
 
   const setFavoriteButtonColor = (index) => {
-    const purple = "#65558F";
+    const purple = "#be1b13";
     const grey = "#999";
     if (favoriteButtons[index] !== null) {
       if (!hoveredButtons[index]) {
@@ -281,18 +282,29 @@ function Home() {
           <button class="custom-button" onClick={() => setShowModal(true)}>
             Allergy
           </button>
-          <button
-            class="custom-button"
-            onClick={() => {
-              navigate(`/kart`);
-            }}
-          >
-            Kart
-          </button>
+           <button className="cart-button" onClick={() => navigate('/kart')}>
+      {/* Simple cart SVG icon */}
+      <svg className="cart-icon" viewBox="0 0 24 24">
+        <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 
+          0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 
+          2-2-.9-2-2-2zM7.16 14.26l.03.01 11.45-.01a1 
+          1 0 00.98-.8l1.38-6.16A.998.998 0 0019.07 
+          6H6.21l-.94-2H1v2h2l3.6 
+          7.59-1.35 2.44C4.52 16.37 5.48 
+          18 7 18h12v-2H7l1.16-1.74z" />
+      </svg>
+    </button>
         </div>
         {showModal && (
           <div className="modal-overlay">
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+               <button
+        className="modal-close-x"
+        onClick={() => closeModal()}
+        aria-label="Close"
+      >
+        &times;
+      </button>
               <h2>What do I eat?</h2>
               <div className="allergy-options">
                 {allergies.map((allergy) => (
@@ -311,9 +323,6 @@ function Home() {
                 onClick={() => updatePreferences()}
               >
                 Update
-              </button>
-              <button className="close-button" onClick={() => closeModal()}>
-                Close
               </button>
             </div>
           </div>

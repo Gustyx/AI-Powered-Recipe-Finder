@@ -2,11 +2,15 @@ import { useEffect, useState } from "react";
 import './Kart.css';
 
 function Kart() {
-  const [ingredients, setSelectedIngredients] = useState(() => {
-    const saved = JSON.parse(localStorage.getItem("ingredients")) || [];
-    return saved
-      .map(item => (typeof item === "string" ? item.trim() : ""))
-      .filter(item => item !== "" && !item.startsWith("(Not In Store)"));
+ const [ingredients, setSelectedIngredients] = useState(() => {
+  const saved = JSON.parse(localStorage.getItem("ingredients")) || [];
+  const filtered = saved
+    .map(item => (typeof item === "string" ? item.trim() : ""))
+    .filter(item => item !== "" && !item.startsWith("(Not In Store)"));
+  
+
+  return filtered;
+
   });
 
   const [pricesMap, setPricesMap] = useState({});
@@ -58,10 +62,7 @@ function Kart() {
               </span>
             </div>
             <div className="card-image">
-              <img
-                src={`../../public/avocado.jpg,${ingredient}`}
-                alt={ingredient}
-              />
+              
             </div>
           </div>
         ))
@@ -83,6 +84,7 @@ function Kart() {
           className="clear-button"
           onClick={() => {
             localStorage.setItem("ingredients", JSON.stringify(""));
+            
             setSelectedIngredients([]);
           }}
         >

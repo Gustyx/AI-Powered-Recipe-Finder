@@ -155,7 +155,7 @@ body {
 }
 
 .recipe-favorite button:hover {
-  color: #65558F;
+  color:#be1b13;
 }
 
 .filled-recipe-favorite {
@@ -168,7 +168,7 @@ body {
   border: none;
   font-size: 36px;
   cursor: pointer;
-  color: #65558F;
+  color: #be1b13;
 }
 
 .filled-recipe-favorite button:hover {
