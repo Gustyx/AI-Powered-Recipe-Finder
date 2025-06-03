@@ -58,7 +58,7 @@ body {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
-  max-width: 384px;
+  max-width: 420px;
   margin: 0 auto 20px auto;
 }
 
@@ -90,7 +90,7 @@ body {
 .suggestions-container {
   text-align: center;
   padding-top: 50px;
-  max-width: 384px;
+  max-width: 420px;
   margin: 0 auto;
   overflow-y: auto;
 }
@@ -280,7 +280,7 @@ body {
 }
 
 .custom-button {
-  background-color: #65558F;
+  background-color: #0b621f;
   color: #fff;
   padding: 15px 20px;
   border: none;
@@ -300,7 +300,7 @@ body {
   padding: 8px 12px;
   font-size: 16px;
   cursor: pointer;
-  background-color: #65558F;
+  background-color: #0b621f;
   color: white;
   border: none;
   border-radius: 5px;
@@ -340,7 +340,7 @@ body {
 .close-button {
   margin-top: 10px;
   padding: 5px 10px;
-  background-color: #65558F;
+  background-color: #0b621f;
   color: white;
   border: none;
   border-radius: 5px;
